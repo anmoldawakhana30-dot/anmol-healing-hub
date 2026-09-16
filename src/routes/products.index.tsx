@@ -5,12 +5,12 @@ import { useLang } from "@/lib/i18n";
 import { categories, products } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
-type Search = { q?: string; cat?: string };
+type Search = { q?: string | undefined; cat?: string | undefined };
 
 export const Route = createFileRoute("/products/")({
   validateSearch: (search: Record<string, unknown>): Search => ({
-    q: typeof search.q === "string" && search.q ? search.q : undefined,
-    cat: typeof search.cat === "string" && search.cat ? search.cat : undefined,
+    q: typeof search["q"] === "string" && search["q"] ? search["q"] : undefined,
+    cat: typeof search["cat"] === "string" && search["cat"] ? search["cat"] : undefined,
   }),
   head: () => ({
     meta: [
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/products/")({
 
 function Catalog() {
   const { q, cat } = Route.useSearch();
-  const navigate = useNavigate({ from: "/products" });
+  const navigate = useNavigate();
   const { t, lang } = useLang();
   const [sort, setSort] = useState<"popular" | "low" | "high">("popular");
 
@@ -49,8 +49,8 @@ function Catalog() {
     return out;
   }, [q, cat, sort]);
 
-  function setCat(next?: string) {
-    navigate({ search: { q, cat: next } });
+  function setCat(next: string | undefined) {
+    navigate({ to: "/products", search: { q, cat: next } });
   }
 
   return (
