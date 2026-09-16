@@ -5,7 +5,7 @@ import { useLang } from "@/lib/i18n";
 import { categories, products } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
-type Search = { q: string | undefined; cat: string | undefined };
+type Search = { q?: string | undefined; cat?: string | undefined };
 
 export const Route = createFileRoute("/products/")({
   validateSearch: (search: Record<string, unknown>): Search => ({
