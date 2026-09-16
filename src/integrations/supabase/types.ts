@@ -14,7 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      products: {
+        Row: {
+          benefits: Json
+          category: string
+          created_at: string
+          description_en: string
+          description_ur: string
+          dosage_en: string
+          dosage_ur: string
+          id: string
+          image: string
+          ingredients: Json
+          name_en: string
+          name_ur: string
+          old_price: number | null
+          pack_en: string
+          pack_ur: string
+          popularity: number
+          price: number
+          rating: number
+          reviews: number
+          short_en: string
+          short_ur: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          benefits?: Json
+          category: string
+          created_at?: string
+          description_en?: string
+          description_ur?: string
+          dosage_en?: string
+          dosage_ur?: string
+          id?: string
+          image?: string
+          ingredients?: Json
+          name_en: string
+          name_ur: string
+          old_price?: number | null
+          pack_en?: string
+          pack_ur?: string
+          popularity?: number
+          price?: number
+          rating?: number
+          reviews?: number
+          short_en?: string
+          short_ur?: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          benefits?: Json
+          category?: string
+          created_at?: string
+          description_en?: string
+          description_ur?: string
+          dosage_en?: string
+          dosage_ur?: string
+          id?: string
+          image?: string
+          ingredients?: Json
+          name_en?: string
+          name_ur?: string
+          old_price?: number | null
+          pack_en?: string
+          pack_ur?: string
+          popularity?: number
+          price?: number
+          rating?: number
+          reviews?: number
+          short_en?: string
+          short_ur?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      settings: {
+        Row: {
+          data: Json
+          id: number
+          updated_at: string
+        }
+        Insert: {
+          data?: Json
+          id?: number
+          updated_at?: string
+        }
+        Update: {
+          data?: Json
+          id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
