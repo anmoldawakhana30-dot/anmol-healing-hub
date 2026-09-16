@@ -5,12 +5,12 @@ import { useLang } from "@/lib/i18n";
 import { categories, products } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
-type Search = { q?: string; cat?: string };
+type Search = { q: string | undefined; cat: string | undefined };
 
 export const Route = createFileRoute("/products/")({
   validateSearch: (search: Record<string, unknown>): Search => ({
-    q: typeof search.q === "string" && search.q ? search.q : undefined,
-    cat: typeof search.cat === "string" && search.cat ? search.cat : undefined,
+    q: typeof search["q"] === "string" && search["q"] ? search["q"] : undefined,
+    cat: typeof search["cat"] === "string" && search["cat"] ? search["cat"] : undefined,
   }),
   head: () => ({
     meta: [
