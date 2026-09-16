@@ -28,7 +28,7 @@ export const Route = createFileRoute("/products/")({
 
 function Catalog() {
   const { q, cat } = Route.useSearch();
-  const navigate = useNavigate({ from: "/products" });
+  const navigate = useNavigate();
   const { t, lang } = useLang();
   const [sort, setSort] = useState<"popular" | "low" | "high">("popular");
 
@@ -49,8 +49,8 @@ function Catalog() {
     return out;
   }, [q, cat, sort]);
 
-  function setCat(next?: string) {
-    navigate({ search: { q, cat: next } });
+  function setCat(next: string | undefined) {
+    navigate({ to: "/products", search: { q, cat: next } });
   }
 
   return (
