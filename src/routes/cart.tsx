@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Trash2 } from "lucide-react";
 import { useCart } from "@/lib/cart";
 import { money, useLang } from "@/lib/i18n";
-import { SHOP } from "@/lib/shop";
+import { orderMessage, SHOP, waLink } from "@/lib/shop";
 
 export const Route = createFileRoute("/cart")({
   head: () => ({
@@ -98,9 +98,25 @@ function CartPage() {
                 <dd className="text-emerald-deep">{money(subtotal + delivery)}</dd>
               </div>
             </dl>
+            <a
+              href={waLink(
+                orderMessage(
+                  items.map((i) => ({
+                    name: `${i.product.name.en} (${i.product.pack.en})`,
+                    price: money(i.product.price),
+                    qty: i.qty,
+                  })),
+                ),
+              )}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-5 block rounded-full bg-whatsapp py-3 text-center text-sm font-medium text-primary-foreground"
+            >
+              {t("wa_order")}
+            </a>
             <Link
               to="/checkout"
-              className="mt-5 block rounded-full bg-primary py-3 text-center text-sm font-medium text-primary-foreground"
+              className="mt-3 block rounded-full border border-primary py-3 text-center text-sm font-medium text-primary"
             >
               {t("checkout")}
             </Link>

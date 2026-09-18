@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { LanguageProvider } from "@/lib/i18n";
 import { CartProvider } from "@/lib/cart";
+import { StoreProvider } from "@/lib/store";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { MobileNav } from "@/components/MobileNav";
@@ -128,6 +129,7 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
+        <StoreProvider>
         <CartProvider>
           <div className="flex min-h-screen flex-col">
             <Header />
@@ -140,6 +142,7 @@ function RootComponent() {
           </div>
           <Toaster position="top-center" />
         </CartProvider>
+        </StoreProvider>
       </LanguageProvider>
     </QueryClientProvider>
   );

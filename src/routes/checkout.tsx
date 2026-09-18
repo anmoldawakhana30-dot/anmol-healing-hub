@@ -3,7 +3,7 @@ import { CheckCircle2, MessageCircle } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useCart } from "@/lib/cart";
 import { money, useLang } from "@/lib/i18n";
-import { SHOP, waLink } from "@/lib/shop";
+import { orderMessage, SHOP, waLink } from "@/lib/shop";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/checkout")({
@@ -47,18 +47,18 @@ function Checkout() {
   }
 
   function orderText() {
-    const lines = items.map((i) => `• ${i.product.name.en} (${i.product.pack.en}) x${i.qty} — ${money(i.product.price * i.qty)}`);
-    return [
-      "Assalam o Alaikum, I want to place this order:",
-      ...lines,
-      `Total: ${money(total)}`,
-      `Name: ${form.name || "-"}`,
-      `Phone: ${form.phone || "-"}`,
-      `Address: ${form.address || "-"}, ${form.city || "-"}`,
-      form.notes ? `Note: ${form.notes}` : "",
-    ]
-      .filter(Boolean)
-      .join("\n");
+    const base = orderMessage(
+      items.map((i) => ({
+        name: `${i.product.name.en} (${i.product.pack.en})`,
+        price: money(i.product.price),
+        qty: i.qty,
+      })),
+    );
+    return base
+      .replace("Mera Naam: ", `Mera Naam: ${form.name}`)
+      .replace("Mera Address: ", `Mera Address: ${form.address}${form.city ? `, ${form.city}` : ""}`)
+      .replace("Mera Phone Number: ", `Mera Phone Number: ${form.phone}`)
+      .concat(`\n\nTotal: ${money(total)}${form.notes ? `\nNote: ${form.notes}` : ""}`);
   }
 
   function submit(e: FormEvent) {
