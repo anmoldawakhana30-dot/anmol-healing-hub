@@ -27,6 +27,7 @@ const CartContext = createContext<Ctx | null>(null);
 const KEY = "ad_cart_v1";
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { products } = useStore();
   const [lines, setLines] = useState<CartLine[]>([]);
   const [ready, setReady] = useState(false);
 
@@ -69,7 +70,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           return product ? { product, qty: l.qty } : null;
         })
         .filter((x): x is { product: Product; qty: number } => x !== null),
-    [lines],
+    [lines, products],
   );
 
   const count = useMemo(() => items.reduce((s, i) => s + i.qty, 0), [items]);
