@@ -7,7 +7,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { products, type Product } from "./products";
+import type { Product } from "./products";
+import { useStore } from "./store";
 
 export type CartLine = { slug: string; qty: number };
 
