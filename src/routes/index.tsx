@@ -3,7 +3,8 @@ import { BadgeCheck, Leaf, MessageCircle, Truck } from "lucide-react";
 import heroImg from "@/assets/hero.jpg";
 import { ProductCard } from "@/components/ProductCard";
 import { useLang } from "@/lib/i18n";
-import { categories, products } from "@/lib/products";
+import { categories } from "@/lib/products";
+import { useStore } from "@/lib/store";
 import { SHOP, waLink } from "@/lib/shop";
 
 export const Route = createFileRoute("/")({
@@ -27,7 +28,11 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const { t, lang } = useLang();
+  const { products, settings } = useStore();
   const featured = [...products].sort((a, b) => b.popularity - a.popularity).slice(0, 4);
+  const heroTitle = lang === "ur" ? settings.heroTitleUr : settings.heroTitleEn;
+  const heroSub = lang === "ur" ? settings.heroSubtitleUr : settings.heroSubtitleEn;
+  const announcement = lang === "ur" ? settings.announcementUr : settings.announcementEn;
 
   const trust = [
     { Icon: Leaf, label: t("trust_1") },
@@ -38,6 +43,9 @@ function Home() {
 
   return (
     <>
+      {announcement && (
+        <div className="bg-emerald-deep px-4 py-2 text-center text-sm text-primary-foreground">{announcement}</div>
+      )}
       <section className="relative isolate overflow-hidden bg-cream">
         <img
           src={heroImg}
@@ -55,9 +63,9 @@ function Home() {
               <Leaf className="size-3.5" /> {t("tagline")}
             </span>
             <h1 className="mt-4 text-3xl font-bold leading-tight text-emerald-deep sm:text-5xl">
-              {t("hero_title")}
+              {heroTitle || t("hero_title")}
             </h1>
-            <p className="mt-4 text-base text-muted-foreground sm:text-lg">{t("hero_sub")}</p>
+            <p className="mt-4 text-base text-muted-foreground sm:text-lg">{heroSub || t("hero_sub")}</p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
                 to="/products"

@@ -2,7 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { useLang } from "@/lib/i18n";
-import { categories, products } from "@/lib/products";
+import { categories } from "@/lib/products";
+import { useStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 type Search = { q?: string | undefined; cat?: string | undefined };
@@ -30,6 +31,7 @@ function Catalog() {
   const { q, cat } = Route.useSearch();
   const navigate = useNavigate();
   const { t, lang } = useLang();
+  const { products } = useStore();
   const [sort, setSort] = useState<"popular" | "low" | "high">("popular");
 
   const list = useMemo(() => {
@@ -47,7 +49,7 @@ function Catalog() {
       sort === "low" ? a.price - b.price : sort === "high" ? b.price - a.price : b.popularity - a.popularity,
     );
     return out;
-  }, [q, cat, sort]);
+  }, [q, cat, sort, products]);
 
   function setCat(next: string | undefined) {
     navigate({ to: "/products", search: { q, cat: next } });
