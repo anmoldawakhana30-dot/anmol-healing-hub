@@ -60,10 +60,11 @@ function ProductDetail() {
 
   const related = products.filter((p) => p.category === product.category && p.slug !== product.slug).slice(0, 4);
 
-  function addToCart() {
-    add(product.slug, qty);
-    toast.success(t("added"), { description: product.name[lang] });
-  }
+  const current = product;
+  const addToCart = () => {
+    add(current.slug, qty);
+    toast.success(t("added"), { description: current.name[lang] });
+  };
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
