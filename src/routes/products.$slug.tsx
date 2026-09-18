@@ -1,21 +1,18 @@
-import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Check, MessageCircle, Star } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { ProductCard } from "@/components/ProductCard";
 import { useCart } from "@/lib/cart";
 import { money, useLang } from "@/lib/i18n";
-import { getProduct, products } from "@/lib/products";
-import { waLink } from "@/lib/shop";
+import { products as defaultProducts, getProduct } from "@/lib/products";
+import { orderMessage, waLink } from "@/lib/shop";
+import { useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/products/$slug")({
-  loader: ({ params }) => {
-    const product = getProduct(params.slug);
-    if (!product) throw notFound();
-    return { product };
-  },
+  loader: ({ params }) => ({ product: getProduct(params.slug) ?? null }),
   head: ({ loaderData }) => {
-    if (!loaderData) {
+    if (!loaderData?.product) {
       return { meta: [{ title: "Medicine not found — Anmol Dawakhana" }, { name: "robots", content: "noindex" }] };
     }
     const p = loaderData.product;
@@ -38,11 +35,28 @@ const sampleReviews = [
 ];
 
 function ProductDetail() {
-  const { product } = Route.useLoaderData();
+  const { slug } = Route.useParams();
+  const { products, getProduct: fromStore } = useStore();
+  const product = fromStore(slug) ?? defaultProducts.find((p) => p.slug === slug);
   const { lang, t } = useLang();
   const { add } = useCart();
   const navigate = useNavigate();
   const [qty, setQty] = useState(1);
+
+  if (!product) {
+    return (
+      <div className="mx-auto max-w-lg px-4 py-24 text-center">
+        <p className="text-muted-foreground">{t("no_results")}</p>
+        <Link
+          to="/products"
+          search={{ q: undefined, cat: undefined }}
+          className="mt-6 inline-block rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground"
+        >
+          {t("continue_shopping")}
+        </Link>
+      </div>
+    );
+  }
 
   const related = products.filter((p) => p.category === product.category && p.slug !== product.slug).slice(0, 4);
 
@@ -124,7 +138,11 @@ function ProductDetail() {
               {t("buy_now")}
             </button>
             <a
-              href={waLink(`Assalam o Alaikum, I want to order: ${product.name.en} (${product.pack.en}) x ${qty}`)}
+              href={waLink(
+                orderMessage([
+                  { name: `${product.name.en} (${product.pack.en})`, price: money(product.price), qty },
+                ]),
+              )}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 rounded-full bg-whatsapp px-5 py-3 text-sm font-medium text-primary-foreground"
