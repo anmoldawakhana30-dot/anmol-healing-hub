@@ -1,13 +1,11 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { Leaf, Search, ShoppingBag } from "lucide-react";
+import { Leaf, Search } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { useCart } from "@/lib/cart";
 import { useLang } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 export function Header() {
   const { t, lang, setLang } = useLang();
-  const { count } = useCart();
   const navigate = useNavigate();
   const [q, setQ] = useState("");
 
@@ -81,18 +79,6 @@ export function Header() {
             ))}
           </div>
 
-          <Link
-            to="/cart"
-            aria-label={t("nav_cart")}
-            className="relative grid size-10 place-items-center rounded-full border border-border bg-card transition-colors hover:border-primary"
-          >
-            <ShoppingBag className="size-[18px]" />
-            {count > 0 && (
-              <span className="absolute -top-1 -end-1 grid min-w-5 place-items-center rounded-full bg-primary px-1 text-[11px] font-semibold text-primary-foreground">
-                {count}
-              </span>
-            )}
-          </Link>
         </div>
       </div>
 
