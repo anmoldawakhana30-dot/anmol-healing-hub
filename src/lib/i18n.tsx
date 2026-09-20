@@ -15,11 +15,10 @@ type Dict = Record<string, { en: string; ur: string }>;
 export const dict: Dict = {
   brand: { en: "Anmol Dawakhana", ur: "انمول دواخانہ" },
   tagline: { en: "Pure herbal remedies since 1974", ur: "خالص جڑی بوٹیوں کی ادویات، 1974 سے" },
-  nav_home: { en: "Home", ur: "ہوم" },
+  nav_home: { en: "Home", ur: "مرکزی صفحہ" },
   nav_shop: { en: "Products", ur: "ادویات" },
   nav_about: { en: "About", ur: "ہمارا تعارف" },
   nav_contact: { en: "Contact", ur: "رابطہ" },
-  nav_cart: { en: "Cart", ur: "ٹوکری" },
   nav_categories: { en: "Categories", ur: "اقسام" },
   search_ph: { en: "Search medicines...", ur: "دوا تلاش کریں..." },
   hero_title: {
@@ -36,12 +35,9 @@ export const dict: Dict = {
   trust_2: { en: "Cash on delivery", ur: "ڈیلیوری پر ادائیگی" },
   trust_3: { en: "Order on WhatsApp", ur: "واٹس ایپ پر آرڈر" },
   trust_4: { en: "Delivery all over Pakistan", ur: "پورے پاکستان میں ڈیلیوری" },
-  shop_by_cat: { en: "Shop by category", ur: "اقسام کے مطابق خریدیں" },
+  shop_by_cat: { en: "Shop by category", ur: "قسم کے مطابق ادویات" },
   featured: { en: "Popular medicines", ur: "مقبول ادویات" },
   view_all: { en: "View all", ur: "سب دیکھیں" },
-  add_to_cart: { en: "Add to cart", ur: "ٹوکری میں ڈالیں" },
-  buy_now: { en: "Buy now", ur: "ابھی خریدیں" },
-  added: { en: "Added to cart", ur: "ٹوکری میں شامل ہو گیا" },
   all: { en: "All", ur: "تمام" },
   sort: { en: "Sort", ur: "ترتیب" },
   sort_popular: { en: "Most popular", ur: "مقبول ترین" },
@@ -52,7 +48,7 @@ export const dict: Dict = {
   ingredients: { en: "Key ingredients", ur: "بنیادی اجزاء" },
   dosage: { en: "How to use", ur: "طریقہ استعمال" },
   reviews: { en: "Customer reviews", ur: "گاہکوں کی رائے" },
-  pack: { en: "Pack size", ur: "وزن / پیکنگ" },
+  pack: { en: "Pack size", ur: "وزن یا پیکنگ" },
   cart_title: { en: "Your cart", ur: "آپ کی ٹوکری" },
   cart_empty: { en: "Your cart is empty.", ur: "آپ کی ٹوکری خالی ہے۔" },
   continue_shopping: { en: "Continue shopping", ur: "خریداری جاری رکھیں" },
@@ -76,7 +72,7 @@ export const dict: Dict = {
   online: { en: "Online payment", ur: "آن لائن ادائیگی" },
   online_d: { en: "Card, bank transfer or wallet.", ur: "کارڈ، بینک ٹرانسفر یا والٹ۔" },
   place_order: { en: "Place order", ur: "آرڈر دیں" },
-  wa_order: { en: "Order on WhatsApp", ur: "واٹس ایپ پر آرڈر کریں" },
+  wa_order: { en: "Order via WhatsApp", ur: "واٹس ایپ پر آرڈر کریں" },
   order_summary: { en: "Order summary", ur: "آرڈر کی تفصیل" },
   order_done: { en: "Order received!", ur: "آرڈر موصول ہو گیا!" },
   order_done_d: {
@@ -149,6 +145,7 @@ export function pick(v: { en: string; ur: string }, lang: Lang) {
   return v[lang];
 }
 
-export function money(n: number) {
-  return "Rs " + n.toLocaleString("en-PK");
+export function money(n: number, lang: Lang = "en") {
+  const amount = n.toLocaleString("en-PK");
+  return lang === "ur" ? `${amount} روپے` : `Rs ${amount}`;
 }

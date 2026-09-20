@@ -184,3 +184,43 @@ export const listAdminProducts = createServerFn({ method: "GET" }).handler(async
   if (error) throw new Error(error.message);
   return data ?? [];
 });
+
+const imageInputSchema = {
+  name: (value: unknown) => clean(value, 120).replace(/[^a-zA-Z0-9._-]/g, "-"),
+  type: (value: unknown) => clean(value, 40),
+  data: (value: unknown) => String(value ?? ""),
+};
+
+export const uploadProductImage = createServerFn({ method: "POST" })
+  .inputValidator((input: { name: string; type: string; data: string }) => ({
+    name: imageInputSchema.name(input.name),
+    type: imageInputSchema.type(input.type),
+    data: imageInputSchema.data(input.data),
+  }))
+  .handler(async ({ data }) => {
+    await requireAdmin();
+    if (!data.name) throw new Error("Choose an image file");
+    if (!new Set(["image/jpeg", "image/png", "image/webp"]).has(data.type)) {
+      throw new Error("Use a JPG, PNG or WebP image");
+    }
+    const match = /^data:image\/(?:jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/.exec(data.data);
+    if (!match?.[1]) throw new Error("The image could not be read");
+    const bytes = Buffer.from(match[1], "base64");
+    if (bytes.byteLength > 5 * 1024 * 1024) throw new Error("Image must be 5 MB or smaller");
+
+    const extension = data.type === "image/jpeg" ? "jpg" : data.type.split("/")[1];
+    const stem = data.name.replace(/\.[^.]+$/, "").slice(0, 60) || "product";
+    const path = `${Date.now()}-${crypto.randomUUID()}-${stem}.${extension}`;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.storage.from("product-images").upload(path, bytes, {
+      contentType: data.type,
+      cacheControl: "31536000",
+      upsert: false,
+    });
+    if (error) throw new Error("Image upload failed");
+    const { data: signed, error: signedError } = await supabaseAdmin.storage
+      .from("product-images")
+      .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+    if (signedError || !signed.signedUrl) throw new Error("Image link could not be created");
+    return { url: signed.signedUrl };
+  });
