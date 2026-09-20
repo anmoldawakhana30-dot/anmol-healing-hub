@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, LogOut, Lock, Pencil, Plus, Trash2 } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { ArrowLeft, ImagePlus, Loader2, LogOut, Lock, Pencil, Plus, Settings, Trash2 } from "lucide-react";
+import { useRef, useState, type FormEvent } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import {
   adminLogin,
   adminLogout,
@@ -12,10 +13,11 @@ import {
   listAdminProducts,
   saveProduct,
   saveSettings,
+  uploadProductImage,
   type ProductInput,
 } from "@/lib/admin.functions";
 import { categories } from "@/lib/products";
-import { defaultSettings, type Settings } from "@/lib/shop";
+import { defaultSettings, type Settings as ShopSettings } from "@/lib/shop";
 import { fetchSettings, resolveImage } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -23,16 +25,19 @@ export const Route = createFileRoute("/admin")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Admin — Anmol Dawakhana" },
-      { name: "description", content: "Private management area for Anmol Dawakhana products and clinic details." },
+      { title: "Shop Management — Anmol Dawakhana" },
+      { name: "description", content: "Private product and clinic management for Anmol Dawakhana." },
+      { property: "og:title", content: "Shop Management — Anmol Dawakhana" },
+      { property: "og:description", content: "Private product and clinic management for Anmol Dawakhana." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
   component: AdminPage,
 });
 
-const field =
-  "mt-1 w-full rounded-xl border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-primary";
+const field = "mt-1.5 w-full rounded-md border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-ring/20";
 
 const emptyProduct: ProductInput = {
   slug: "",
@@ -56,36 +61,53 @@ const emptyProduct: ProductInput = {
 
 function Field(props: {
   label: string;
+  hint?: string;
   urdu?: boolean;
   value: string | number;
-  onChange: (v: string) => void;
+  onChange: (value: string) => void;
   textarea?: boolean;
   type?: string;
   placeholder?: string;
+  required?: boolean;
 }) {
+  const control = props.textarea ? (
+    <textarea
+      value={props.value}
+      onChange={(event) => props.onChange(event.target.value)}
+      rows={4}
+      dir={props.urdu ? "rtl" : "ltr"}
+      className={cn(field, props.urdu && "font-urdu")}
+      placeholder={props.placeholder ?? ""}
+      required={props.required}
+    />
+  ) : (
+    <input
+      value={props.value}
+      type={props.type ?? "text"}
+      onChange={(event) => props.onChange(event.target.value)}
+      dir={props.urdu ? "rtl" : "ltr"}
+      className={cn(field, props.urdu && "font-urdu")}
+      placeholder={props.placeholder ?? ""}
+      required={props.required}
+    />
+  );
+
   return (
     <label className="block">
       <span className="text-sm font-medium">{props.label}</span>
-      {props.textarea ? (
-        <textarea
-          value={props.value}
-          onChange={(e) => props.onChange(e.target.value)}
-          rows={3}
-          dir={props.urdu ? "rtl" : "ltr"}
-          className={cn(field, props.urdu && "font-urdu")}
-          placeholder={props.placeholder ?? ""}
-        />
-      ) : (
-        <input
-          value={props.value}
-          type={props.type ?? "text"}
-          onChange={(e) => props.onChange(e.target.value)}
-          dir={props.urdu ? "rtl" : "ltr"}
-          className={cn(field, props.urdu && "font-urdu")}
-          placeholder={props.placeholder ?? ""}
-        />
-      )}
+      {props.hint && <span className="mt-0.5 block text-xs text-muted-foreground">{props.hint}</span>}
+      {control}
     </label>
+  );
+}
+
+function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+  return (
+    <section className="border-t border-border pt-5 first:border-0 first:pt-0">
+      <h3 className="font-semibold text-emerald-deep">{title}</h3>
+      {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+      <div className="mt-4">{children}</div>
+    </section>
   );
 }
 
@@ -94,88 +116,69 @@ function PairList(props: {
   items: { en: string; ur: string }[];
   onChange: (items: { en: string; ur: string }[]) => void;
 }) {
-  const { items, onChange } = props;
   return (
     <div>
       <span className="text-sm font-medium">{props.label}</span>
       <div className="mt-2 space-y-2">
-        {items.map((item, i) => (
-          <div key={i} className="flex gap-2">
+        {props.items.map((item, index) => (
+          <div key={`${index}-${item.en}`} className="grid grid-cols-[1fr_1fr_auto] gap-2">
             <input
               value={item.en}
-              onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, en: e.target.value } : x)))}
+              onChange={(event) => props.onChange(props.items.map((value, itemIndex) => itemIndex === index ? { ...value, en: event.target.value } : value))}
               placeholder="English"
-              className="w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
+              className={field}
             />
             <input
               value={item.ur}
               dir="rtl"
-              onChange={(e) => onChange(items.map((x, j) => (j === i ? { ...x, ur: e.target.value } : x)))}
+              onChange={(event) => props.onChange(props.items.map((value, itemIndex) => itemIndex === index ? { ...value, ur: event.target.value } : value))}
               placeholder="اردو"
-              className="font-urdu w-full rounded-xl border border-border bg-card px-3 py-2 text-sm outline-none focus:border-primary"
+              className={cn(field, "font-urdu")}
             />
-            <button
-              type="button"
-              onClick={() => onChange(items.filter((_, j) => j !== i))}
-              className="shrink-0 rounded-xl border border-border px-3 text-muted-foreground hover:text-destructive"
-              aria-label="remove"
-            >
-              <Trash2 className="size-4" />
-            </button>
+            <Button type="button" variant="ghost" size="icon" onClick={() => props.onChange(props.items.filter((_, itemIndex) => itemIndex !== index))} aria-label="Remove line">
+              <Trash2 />
+            </Button>
           </div>
         ))}
       </div>
-      <button
-        type="button"
-        onClick={() => onChange([...items, { en: "", ur: "" }])}
-        className="mt-2 inline-flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs"
-      >
-        <Plus className="size-3.5" /> Add line / نئی سطر
-      </button>
+      <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => props.onChange([...props.items, { en: "", ur: "" }])}>
+        <Plus /> Add another / مزید شامل کریں
+      </Button>
     </div>
   );
 }
 
 function AdminPage() {
   const status = useQuery({ queryKey: ["admin-status"], queryFn: () => adminStatus() });
-
-  if (status.isLoading) {
-    return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <Loader2 className="size-6 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (!status.data?.admin) {
-    return <LoginCard configured={status.data?.configured ?? false} onDone={() => status.refetch()} />;
-  }
-
+  if (status.isLoading) return <Loading />;
+  if (!status.data?.admin) return <Login configured={status.data?.configured ?? false} onDone={() => status.refetch()} />;
   return <Dashboard onSignOut={() => status.refetch()} />;
 }
 
-function LoginCard({ configured, onDone }: { configured: boolean; onDone: () => void }) {
+function Loading() {
+  return <div className="flex min-h-[60vh] items-center justify-center"><Loader2 className="size-6 animate-spin text-primary" /></div>;
+}
+
+function Login({ configured, onDone }: { configured: boolean; onDone: () => void }) {
   const login = useServerFn(adminLogin);
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  async function submit(e: FormEvent) {
-    e.preventDefault();
+  async function submit(event: FormEvent) {
+    event.preventDefault();
     setBusy(true);
     setError("");
     try {
-      const res = await login({ data: { password } });
-      if (res.ok) {
+      const result = await login({ data: { password } });
+      if (result.ok) {
         setPassword("");
         onDone();
-      } else if (res.reason === "not_configured") {
-        setError("No admin password has been set for this site yet.");
       } else {
-        setError("Wrong password / پاس ورڈ غلط ہے");
+        setError(result.reason === "not_configured" ? "The admin password is not configured." : "Wrong password / پاس ورڈ درست نہیں");
       }
     } catch {
-      setError("Could not sign in. Please try again.");
+      setError("Sign in failed. Please try again. / دوبارہ کوشش کریں۔");
     } finally {
       setBusy(false);
     }
@@ -184,28 +187,12 @@ function LoginCard({ configured, onDone }: { configured: boolean; onDone: () => 
   return (
     <div className="mx-auto max-w-sm px-4 py-20">
       <form onSubmit={submit} className="surface-panel space-y-4 p-6 text-center">
-        <Lock className="mx-auto size-8 text-primary" />
-        <h1 className="text-xl font-semibold text-emerald-deep">Admin Login</h1>
-        <p className="font-urdu text-sm text-muted-foreground">ایڈمن لاگ ان</p>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Password / پاس ورڈ"
-          autoComplete="current-password"
-          className={field}
-        />
-        {!configured && (
-          <p className="text-xs text-muted-foreground">Ask your developer to set the admin password first.</p>
-        )}
+        <span className="mx-auto grid size-11 place-items-center rounded-md bg-accent text-primary"><Lock className="size-5" /></span>
+        <div><h1 className="text-xl font-semibold text-emerald-deep">Shop Management</h1><p className="font-urdu text-sm text-muted-foreground">دکان کا انتظام</p></div>
+        <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Password / پاس ورڈ" autoComplete="current-password" className={field} required />
+        {!configured && <p className="text-xs text-destructive">The admin password is not configured.</p>}
         {error && <p className="text-sm text-destructive">{error}</p>}
-        <button
-          type="submit"
-          disabled={busy}
-          className="w-full rounded-full bg-primary py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
-        >
-          {busy ? "Please wait..." : "Sign in / داخل ہوں"}
-        </button>
+        <Button type="submit" disabled={busy} className="h-11 w-full">{busy && <Loader2 className="animate-spin" />}{busy ? "Signing in..." : "Sign in / داخل ہوں"}</Button>
       </form>
     </div>
   );
@@ -214,289 +201,205 @@ function LoginCard({ configured, onDone }: { configured: boolean; onDone: () => 
 type Row = ProductInput & { id: string };
 
 function Dashboard({ onSignOut }: { onSignOut: () => void }) {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   const list = useServerFn(listAdminProducts);
   const logout = useServerFn(adminLogout);
   const [tab, setTab] = useState<"products" | "settings">("products");
-
   const products = useQuery({ queryKey: ["admin-products"], queryFn: () => list() });
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-emerald-deep">Admin Panel</h1>
-          <p className="font-urdu text-sm text-muted-foreground">انتظامی پینل</p>
-        </div>
-        <button
-          onClick={async () => {
-            await logout();
-            qc.clear();
-            onSignOut();
-          }}
-          className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm"
-        >
-          <LogOut className="size-4" /> Sign out
-        </button>
+    <div className="mx-auto max-w-6xl px-4 py-8">
+      <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
+        <div><h1 className="text-2xl font-semibold text-emerald-deep">Shop Management</h1><p className="font-urdu text-sm text-muted-foreground">دکان کا آسان انتظام</p></div>
+        <Button variant="outline" onClick={async () => { await logout(); queryClient.clear(); onSignOut(); }}><LogOut /> Sign out</Button>
+      </header>
+      <div className="mt-6 inline-flex rounded-md border border-border bg-card p-1">
+        <Button variant={tab === "products" ? "default" : "ghost"} onClick={() => setTab("products")}><ImagePlus /> Products</Button>
+        <Button variant={tab === "settings" ? "default" : "ghost"} onClick={() => setTab("settings")}><Settings /> Clinic settings</Button>
       </div>
-
-      <div className="mt-6 flex gap-2">
-        {(
-          [
-            ["products", "Products / ادویات"],
-            ["settings", "Clinic details / دواخانہ کی معلومات"],
-          ] as const
-        ).map(([key, label]) => (
-          <button
-            key={key}
-            onClick={() => setTab(key)}
-            className={cn(
-              "rounded-full border px-4 py-2 text-sm",
-              tab === key ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card",
-            )}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {tab === "products" ? (
-        <ProductsTab rows={(products.data as unknown as Row[]) ?? []} loading={products.isLoading} />
-      ) : (
-        <SettingsTab />
-      )}
+      {tab === "products" ? <Products rows={(products.data as Row[] | undefined) ?? []} loading={products.isLoading} error={products.isError} /> : <ClinicSettings />}
     </div>
   );
 }
 
-function ProductsTab({ rows, loading }: { rows: Row[]; loading: boolean }) {
-  const qc = useQueryClient();
+function Products({ rows, loading, error }: { rows: Row[]; loading: boolean; error: boolean }) {
+  const queryClient = useQueryClient();
   const save = useServerFn(saveProduct);
-  const del = useServerFn(deleteProduct);
+  const removeProduct = useServerFn(deleteProduct);
+  const upload = useServerFn(uploadProductImage);
+  const fileInput = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState<{ id: string | null; data: ProductInput } | null>(null);
   const [busy, setBusy] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
-  function refresh() {
-    qc.invalidateQueries({ queryKey: ["admin-products"] });
-    qc.invalidateQueries({ queryKey: ["products"] });
-  }
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+    queryClient.invalidateQueries({ queryKey: ["products"] });
+  };
 
-  async function submit(e: FormEvent) {
-    e.preventDefault();
+  async function submit(event: FormEvent) {
+    event.preventDefault();
     if (!editing) return;
     setBusy(true);
     try {
       await save({ data: { id: editing.id, product: editing.data } });
-      toast.success("Saved / محفوظ ہو گیا");
+      toast.success("Product saved / دوا محفوظ ہو گئی");
       setEditing(null);
       refresh();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not save");
+    } catch (caught) {
+      toast.error(caught instanceof Error ? caught.message : "Product could not be saved");
     } finally {
       setBusy(false);
     }
   }
 
-  async function remove(row: Row) {
-    if (!confirm(`Remove "${row.name_en}"? / کیا یہ دوا ہٹا دیں؟`)) return;
+  async function uploadFile(file: File) {
+    if (!editing) return;
+    if (!new Set(["image/jpeg", "image/png", "image/webp"]).has(file.type)) return toast.error("Use a JPG, PNG or WebP image");
+    if (file.size > 5 * 1024 * 1024) return toast.error("Image must be 5 MB or smaller");
+    setUploading(true);
     try {
-      await del({ data: { id: row.id } });
-      toast.success("Removed / ہٹا دیا گیا");
+      const data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => typeof reader.result === "string" ? resolve(reader.result) : reject(new Error("Image could not be read"));
+        reader.onerror = () => reject(new Error("Image could not be read"));
+        reader.readAsDataURL(file);
+      });
+      const result = await upload({ data: { name: file.name, type: file.type, data } });
+      setEditing((current) => current ? { ...current, data: { ...current.data, image: result.url } } : current);
+      toast.success("Photo uploaded / تصویر اپ لوڈ ہو گئی");
+    } catch (caught) {
+      toast.error(caught instanceof Error ? caught.message : "Photo upload failed");
+    } finally {
+      setUploading(false);
+      if (fileInput.current) fileInput.current.value = "";
+    }
+  }
+
+  async function remove(row: Row) {
+    if (!window.confirm(`Delete “${row.name_en || row.name_ur}”? This cannot be undone.`)) return;
+    try {
+      await removeProduct({ data: { id: row.id } });
+      toast.success("Product deleted / دوا حذف ہو گئی");
       refresh();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not remove");
+    } catch (caught) {
+      toast.error(caught instanceof Error ? caught.message : "Product could not be deleted");
     }
   }
 
   if (editing) {
-    const d = editing.data;
-    const set = (patch: Partial<ProductInput>) => setEditing({ ...editing, data: { ...d, ...patch } });
-
+    const data = editing.data;
+    const set = (patch: Partial<ProductInput>) => setEditing({ ...editing, data: { ...data, ...patch } });
     return (
-      <form onSubmit={submit} className="surface-panel mt-6 space-y-5 p-5">
-        <h2 className="text-lg font-semibold">{editing.id ? "Edit product" : "Add new product"}</h2>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Title (English)" value={d.name_en} onChange={(v) => set({ name_en: v })} />
-          <Field label="عنوان (اردو)" urdu value={d.name_ur} onChange={(v) => set({ name_ur: v })} />
-          <label className="block">
-            <span className="text-sm font-medium">Category / قسم</span>
-            <select value={d.category} onChange={(e) => set({ category: e.target.value })} className={field}>
-              {categories.map((c) => (
-                <option key={c.slug} value={c.slug}>
-                  {c.name.en} — {c.name.ur}
-                </option>
-              ))}
-            </select>
-          </label>
-          <Field
-            label="Web address (slug) — leave as is if unsure"
-            value={d.slug}
-            onChange={(v) => set({ slug: v })}
-            placeholder="joshanda-special"
-          />
-          <Field label="Price (Rs.)" type="number" value={d.price} onChange={(v) => set({ price: Number(v) })} />
-          <Field
-            label="Old price (optional)"
-            type="number"
-            value={d.old_price ?? ""}
-            onChange={(v) => set({ old_price: v === "" ? null : Number(v) })}
-          />
-          <Field label="Pack size (English)" value={d.pack_en} onChange={(v) => set({ pack_en: v })} placeholder="200 g" />
-          <Field label="پیک سائز (اردو)" urdu value={d.pack_ur} onChange={(v) => set({ pack_ur: v })} placeholder="200 گرام" />
-          <Field
-            label="Photo link (paste image URL, or write tea / oil / syrup)"
-            value={d.image}
-            onChange={(v) => set({ image: v })}
-            placeholder="https://..."
-          />
-          <div className="flex items-end">
-            <img
-              src={resolveImage(d.image)}
-              alt=""
-              className="size-16 rounded-xl border border-border object-cover"
-            />
-          </div>
-          <Field label="Short line (English)" value={d.short_en} onChange={(v) => set({ short_en: v })} />
-          <Field label="مختصر جملہ (اردو)" urdu value={d.short_ur} onChange={(v) => set({ short_ur: v })} />
-          <Field label="Description (English)" textarea value={d.description_en} onChange={(v) => set({ description_en: v })} />
-          <Field label="تفصیل (اردو)" urdu textarea value={d.description_ur} onChange={(v) => set({ description_ur: v })} />
-          <Field label="Usage / dosage (English)" textarea value={d.dosage_en} onChange={(v) => set({ dosage_en: v })} />
-          <Field label="طریقہ استعمال (اردو)" urdu textarea value={d.dosage_ur} onChange={(v) => set({ dosage_ur: v })} />
+      <form onSubmit={submit} className="mt-6 space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3"><Button type="button" variant="outline" size="icon" onClick={() => setEditing(null)} aria-label="Back"><ArrowLeft /></Button><div><h2 className="text-xl font-semibold">{editing.id ? "Edit product" : "Add a product"}</h2><p className="font-urdu text-sm text-muted-foreground">{editing.id ? "دوا کی معلومات بدلیں" : "نئی دوا شامل کریں"}</p></div></div>
+          <Button type="submit" disabled={busy || uploading}>{busy && <Loader2 className="animate-spin" />}{busy ? "Saving..." : "Save product / محفوظ کریں"}</Button>
         </div>
 
-        <PairList label="Benefits / فوائد" items={d.benefits} onChange={(benefits) => set({ benefits })} />
-        <PairList label="Ingredients / اجزاء" items={d.ingredients} onChange={(ingredients) => set({ ingredients })} />
+        <div className="surface-panel space-y-6 p-5 sm:p-6">
+          <Section title="Basic details / بنیادی معلومات">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Product name in English" value={data.name_en} onChange={(value) => set({ name_en: value })} required />
+              <Field label="دوا کا نام اردو میں" urdu value={data.name_ur} onChange={(value) => set({ name_ur: value })} required />
+              <label className="block text-sm font-medium">Category / قسم<select value={data.category} onChange={(event) => set({ category: event.target.value })} className={field}>{categories.map((category) => <option key={category.slug} value={category.slug}>{category.name.en} — {category.name.ur}</option>)}</select></label>
+              <Field label="Web address" hint="Created automatically if left empty." value={data.slug} onChange={(value) => set({ slug: value })} placeholder="special-joshanda" />
+            </div>
+          </Section>
 
-        <div className="flex gap-3">
-          <button
-            type="submit"
-            disabled={busy}
-            className="rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
-          >
-            {busy ? "Saving..." : "Save / محفوظ کریں"}
-          </button>
-          <button
-            type="button"
-            onClick={() => setEditing(null)}
-            className="rounded-full border border-border px-6 py-3 text-sm"
-          >
-            Cancel / منسوخ
-          </button>
+          <Section title="Price and pack / قیمت اور پیکنگ">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <Field label="Price (Rs.)" type="number" value={data.price} onChange={(value) => set({ price: Number(value) })} required />
+              <Field label="Old price (optional)" type="number" value={data.old_price ?? ""} onChange={(value) => set({ old_price: value === "" ? null : Number(value) })} />
+              <Field label="Pack size in English" value={data.pack_en} onChange={(value) => set({ pack_en: value })} placeholder="200 g" />
+              <Field label="پیک کا وزن اردو میں" urdu value={data.pack_ur} onChange={(value) => set({ pack_ur: value })} placeholder="200 گرام" />
+            </div>
+          </Section>
+
+          <Section title="Product photo / دوا کی تصویر" description="Upload a clear JPG, PNG or WebP photo up to 5 MB, or paste an image link.">
+            <div className="grid gap-4 sm:grid-cols-[144px_1fr] sm:items-start">
+              <img src={resolveImage(data.image)} alt="Product preview" className="aspect-square w-36 rounded-md border border-border object-cover" />
+              <div>
+                <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (file) uploadFile(file); }} />
+                <Button type="button" variant="outline" disabled={uploading} onClick={() => fileInput.current?.click()}>{uploading ? <Loader2 className="animate-spin" /> : <ImagePlus />}{uploading ? "Uploading..." : "Upload photo / تصویر اپ لوڈ کریں"}</Button>
+                <div className="mt-4"><Field label="Or paste an image URL" value={data.image} onChange={(value) => set({ image: value })} placeholder="https://..." /></div>
+              </div>
+            </div>
+          </Section>
+
+          <Section title="Description / تفصیل">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Short line in English" value={data.short_en} onChange={(value) => set({ short_en: value })} />
+              <Field label="مختصر جملہ اردو میں" urdu value={data.short_ur} onChange={(value) => set({ short_ur: value })} />
+              <Field label="Full description in English" textarea value={data.description_en} onChange={(value) => set({ description_en: value })} />
+              <Field label="مکمل تفصیل اردو میں" urdu textarea value={data.description_ur} onChange={(value) => set({ description_ur: value })} />
+            </div>
+          </Section>
+
+          <Section title="Benefits and ingredients / فوائد اور اجزاء">
+            <div className="grid gap-6 lg:grid-cols-2"><PairList label="Benefits / فوائد" items={data.benefits} onChange={(benefits) => set({ benefits })} /><PairList label="Ingredients / اجزاء" items={data.ingredients} onChange={(ingredients) => set({ ingredients })} /></div>
+          </Section>
+
+          <Section title="How to use / طریقہ استعمال">
+            <div className="grid gap-4 sm:grid-cols-2"><Field label="Instructions in English" textarea value={data.dosage_en} onChange={(value) => set({ dosage_en: value })} /><Field label="استعمال کا طریقہ اردو میں" urdu textarea value={data.dosage_ur} onChange={(value) => set({ dosage_ur: value })} /></div>
+          </Section>
         </div>
       </form>
     );
   }
 
   return (
-    <div className="mt-6">
-      <button
-        onClick={() => setEditing({ id: null, data: { ...emptyProduct } })}
-        className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
-      >
-        <Plus className="size-4" /> Add new product / نئی دوا شامل کریں
-      </button>
-
-      {loading ? (
-        <p className="mt-8 text-center text-muted-foreground">Loading...</p>
-      ) : (
-        <ul className="mt-5 space-y-2">
+    <section className="mt-6">
+      <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-xl font-semibold">Products</h2><p className="font-urdu text-sm text-muted-foreground">ادویات شامل کریں یا معلومات بدلیں</p></div><Button onClick={() => setEditing({ id: null, data: { ...emptyProduct } })}><Plus /> Add product / نئی دوا</Button></div>
+      {loading ? <Loading /> : error ? <p className="mt-8 text-center text-destructive">Products could not be loaded. Please refresh.</p> : rows.length === 0 ? <p className="mt-8 border-y border-border py-10 text-center text-muted-foreground">No products yet. Add your first product.</p> : (
+        <ul className="mt-5 divide-y divide-border border-y border-border">
           {rows.map((row) => (
-            <li key={row.id} className="surface-panel flex items-center gap-3 p-3">
-              <img
-                src={resolveImage(row.image)}
-                alt=""
-                className="size-14 shrink-0 rounded-lg object-cover"
-                loading="lazy"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium">{row.name_en}</p>
-                <p className="font-urdu truncate text-sm text-muted-foreground">{row.name_ur}</p>
-              </div>
-              <span className="shrink-0 text-sm font-semibold text-emerald-deep">Rs. {row.price}</span>
-              <button
-                onClick={() => setEditing({ id: row.id, data: { ...row } })}
-                className="rounded-full border border-border p-2 text-muted-foreground hover:text-primary"
-                aria-label="edit"
-              >
-                <Pencil className="size-4" />
-              </button>
-              <button
-                onClick={() => remove(row)}
-                className="rounded-full border border-border p-2 text-muted-foreground hover:text-destructive"
-                aria-label="delete"
-              >
-                <Trash2 className="size-4" />
-              </button>
+            <li key={row.id} className="flex items-center gap-3 py-3">
+              <img src={resolveImage(row.image)} alt="" className="size-16 shrink-0 rounded-md object-cover" loading="lazy" />
+              <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{row.name_en}</p><p className="font-urdu truncate text-sm text-muted-foreground">{row.name_ur}</p><p className="text-xs text-muted-foreground">Rs. {row.price} · {row.pack_en}</p></div>
+              <Button variant="outline" size="icon" onClick={() => setEditing({ id: row.id, data: { ...row } })} aria-label={`Edit ${row.name_en}`}><Pencil /></Button>
+              <Button variant="ghost" size="icon" className="text-destructive" onClick={() => remove(row)} aria-label={`Delete ${row.name_en}`}><Trash2 /></Button>
             </li>
           ))}
         </ul>
       )}
-    </div>
+    </section>
   );
 }
 
-function SettingsTab() {
-  const qc = useQueryClient();
+function ClinicSettings() {
+  const queryClient = useQueryClient();
   const save = useServerFn(saveSettings);
   const current = useQuery({ queryKey: ["settings"], queryFn: fetchSettings });
-  const [draft, setDraft] = useState<Settings | null>(null);
+  const [draft, setDraft] = useState<ShopSettings | null>(null);
   const [busy, setBusy] = useState(false);
-
   const data = draft ?? current.data ?? defaultSettings;
-  const set = (patch: Partial<Settings>) => setDraft({ ...data, ...patch });
+  const set = (patch: Partial<ShopSettings>) => setDraft({ ...data, ...patch });
 
-  async function submit(e: FormEvent) {
-    e.preventDefault();
+  async function submit(event: FormEvent) {
+    event.preventDefault();
     setBusy(true);
     try {
       await save({ data: data as unknown as Record<string, string> });
-      toast.success("Saved / محفوظ ہو گیا");
-      qc.invalidateQueries({ queryKey: ["settings"] });
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Could not save");
+      toast.success("Clinic details saved / معلومات محفوظ ہو گئیں");
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
+      setDraft(null);
+    } catch (caught) {
+      toast.error(caught instanceof Error ? caught.message : "Details could not be saved");
     } finally {
       setBusy(false);
     }
   }
 
+  if (current.isLoading) return <Loading />;
   return (
-    <form onSubmit={submit} className="surface-panel mt-6 grid gap-4 p-5 sm:grid-cols-2">
-      <Field
-        label="WhatsApp number (digits only, with country code)"
-        value={data.whatsapp}
-        onChange={(v) => set({ whatsapp: v })}
-        placeholder="923072560758"
-      />
-      <Field label="Phone number shown on site" value={data.phone} onChange={(v) => set({ phone: v })} />
-      <Field label="Email" value={data.email} onChange={(v) => set({ email: v })} />
-      <Field label="Google Maps location (address or link)" value={data.mapQuery} onChange={(v) => set({ mapQuery: v })} />
-      <Field label="Address (English)" value={data.addressEn} onChange={(v) => set({ addressEn: v })} />
-      <Field label="پتہ (اردو)" urdu value={data.addressUr} onChange={(v) => set({ addressUr: v })} />
-      <Field label="Banner heading (English)" value={data.heroTitleEn} onChange={(v) => set({ heroTitleEn: v })} />
-      <Field label="بینر عنوان (اردو)" urdu value={data.heroTitleUr} onChange={(v) => set({ heroTitleUr: v })} />
-      <Field
-        label="Banner text (English)"
-        textarea
-        value={data.heroSubtitleEn}
-        onChange={(v) => set({ heroSubtitleEn: v })}
-      />
-      <Field label="بینر تفصیل (اردو)" urdu textarea value={data.heroSubtitleUr} onChange={(v) => set({ heroSubtitleUr: v })} />
-      <Field
-        label="Announcement (English, leave empty to hide)"
-        value={data.announcementEn}
-        onChange={(v) => set({ announcementEn: v })}
-      />
-      <Field label="اعلان (اردو)" urdu value={data.announcementUr} onChange={(v) => set({ announcementUr: v })} />
-
-      <div className="sm:col-span-2">
-        <button
-          type="submit"
-          disabled={busy}
-          className="rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground disabled:opacity-60"
-        >
-          {busy ? "Saving..." : "Save / محفوظ کریں"}
-        </button>
+    <form onSubmit={submit} className="mt-6 space-y-6">
+      <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-xl font-semibold">Clinic settings</h2><p className="font-urdu text-sm text-muted-foreground">دواخانے کی معلومات</p></div><Button type="submit" disabled={busy}>{busy && <Loader2 className="animate-spin" />}{busy ? "Saving..." : "Save changes / محفوظ کریں"}</Button></div>
+      <div className="surface-panel space-y-6 p-5 sm:p-6">
+        <Section title="Contact details / رابطے کی معلومات"><div className="grid gap-4 sm:grid-cols-2"><Field label="WhatsApp number" hint="Country code and digits only." value={data.whatsapp} onChange={(value) => set({ whatsapp: value })} placeholder="923072560758" /><Field label="Phone number shown on website" value={data.phone} onChange={(value) => set({ phone: value })} /><Field label="Email address" type="email" value={data.email} onChange={(value) => set({ email: value })} /><Field label="Google Maps address or link" value={data.mapQuery} onChange={(value) => set({ mapQuery: value })} /></div></Section>
+        <Section title="Clinic address / دواخانے کا پتہ"><div className="grid gap-4 sm:grid-cols-2"><Field label="Address in English" textarea value={data.addressEn} onChange={(value) => set({ addressEn: value })} /><Field label="پتہ اردو میں" urdu textarea value={data.addressUr} onChange={(value) => set({ addressUr: value })} /></div></Section>
+        <Section title="Home banner / مرکزی پیغام"><div className="grid gap-4 sm:grid-cols-2"><Field label="Heading in English" value={data.heroTitleEn} onChange={(value) => set({ heroTitleEn: value })} /><Field label="عنوان اردو میں" urdu value={data.heroTitleUr} onChange={(value) => set({ heroTitleUr: value })} /><Field label="Short text in English" textarea value={data.heroSubtitleEn} onChange={(value) => set({ heroSubtitleEn: value })} /><Field label="مختصر عبارت اردو میں" urdu textarea value={data.heroSubtitleUr} onChange={(value) => set({ heroSubtitleUr: value })} /></div></Section>
+        <Section title="Emergency announcement / ضروری اعلان" description="Leave both boxes empty to hide the announcement."><div className="grid gap-4 sm:grid-cols-2"><Field label="Announcement in English" textarea value={data.announcementEn} onChange={(value) => set({ announcementEn: value })} /><Field label="ضروری اعلان اردو میں" urdu textarea value={data.announcementUr} onChange={(value) => set({ announcementUr: value })} /></div></Section>
       </div>
     </form>
   );
