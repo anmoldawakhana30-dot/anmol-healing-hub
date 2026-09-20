@@ -1,16 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { Home, LayoutGrid, Phone, ShoppingBag } from "lucide-react";
-import { useCart } from "@/lib/cart";
+import { Home, LayoutGrid, Phone } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 
 export function MobileNav() {
   const { t } = useLang();
-  const { count } = useCart();
-
   const items = [
     { to: "/", label: t("nav_home"), Icon: Home, exact: true },
     { to: "/products", label: t("nav_categories"), Icon: LayoutGrid, exact: false },
-    { to: "/cart", label: t("nav_cart"), Icon: ShoppingBag, exact: false },
     { to: "/contact", label: t("nav_contact"), Icon: Phone, exact: false },
   ] as const;
 
@@ -25,14 +21,7 @@ export function MobileNav() {
               className="flex flex-col items-center gap-1 py-2 text-[11px] text-muted-foreground"
               activeProps={{ className: "text-primary" }}
             >
-              <span className="relative">
-                <Icon className="size-5" />
-                {to === "/cart" && count > 0 && (
-                  <span className="absolute -top-1.5 -end-2 grid min-w-4 place-items-center rounded-full bg-primary px-1 text-[10px] text-primary-foreground">
-                    {count}
-                  </span>
-                )}
-              </span>
+              <Icon className="size-5" />
               {label}
             </Link>
           </li>

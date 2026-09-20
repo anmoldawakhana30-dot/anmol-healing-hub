@@ -1,12 +1,9 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Check, MessageCircle, Star } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { Check, Star } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
-import { useCart } from "@/lib/cart";
+import { WhatsAppOrderDialog } from "@/components/WhatsAppOrderDialog";
 import { money, useLang } from "@/lib/i18n";
 import { products as defaultProducts, getProduct } from "@/lib/products";
-import { orderMessage, waLink } from "@/lib/shop";
 import { useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/products/$slug")({
@@ -39,9 +36,6 @@ function ProductDetail() {
   const { products, getProduct: fromStore } = useStore();
   const product = fromStore(slug) ?? defaultProducts.find((p) => p.slug === slug);
   const { lang, t } = useLang();
-  const { add } = useCart();
-  const navigate = useNavigate();
-  const [qty, setQty] = useState(1);
 
   if (!product) {
     return (
@@ -59,12 +53,6 @@ function ProductDetail() {
   }
 
   const related = products.filter((p) => p.category === product.category && p.slug !== product.slug).slice(0, 4);
-
-  const current = product;
-  const addToCart = () => {
-    add(current.slug, qty);
-    toast.success(t("added"), { description: current.name[lang] });
-  };
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -100,57 +88,17 @@ function ProductDetail() {
           <p className="mt-4 text-muted-foreground">{product.description[lang]}</p>
 
           <div className="mt-5 flex items-end gap-3">
-            <span className="text-3xl font-bold text-emerald-deep">{money(product.price)}</span>
+            <span className="text-3xl font-bold text-emerald-deep">{money(product.price, lang)}</span>
             {product.oldPrice && (
-              <span className="pb-1 text-sm text-muted-foreground line-through">{money(product.oldPrice)}</span>
+              <span className="pb-1 text-sm text-muted-foreground line-through">{money(product.oldPrice, lang)}</span>
             )}
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
             {t("pack")}: {product.pack[lang]}
           </p>
 
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <div className="flex items-center rounded-full border border-border bg-card">
-              <button
-                onClick={() => setQty((q) => Math.max(1, q - 1))}
-                aria-label="-"
-                className="size-10 text-lg text-muted-foreground"
-              >
-                −
-              </button>
-              <span className="w-8 text-center text-sm">{qty}</span>
-              <button onClick={() => setQty((q) => q + 1)} aria-label="+" className="size-10 text-lg text-muted-foreground">
-                +
-              </button>
-            </div>
-            <button
-              onClick={addToCart}
-              className="rounded-full bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-transform active:scale-95"
-            >
-              {t("add_to_cart")}
-            </button>
-            <button
-              onClick={() => {
-                add(product.slug, qty);
-                navigate({ to: "/checkout" });
-              }}
-              className="rounded-full border border-primary px-6 py-3 text-sm font-medium text-primary"
-            >
-              {t("buy_now")}
-            </button>
-            <a
-              href={waLink(
-                orderMessage([
-                  { name: `${product.name.en} (${product.pack.en})`, price: money(product.price), qty },
-                ]),
-              )}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-full bg-whatsapp px-5 py-3 text-sm font-medium text-primary-foreground"
-            >
-              <MessageCircle className="size-4" />
-              {t("wa_order")}
-            </a>
+          <div className="mt-6">
+            <WhatsAppOrderDialog product={product} />
           </div>
 
           <div className="mt-8 grid gap-6 sm:grid-cols-2">
