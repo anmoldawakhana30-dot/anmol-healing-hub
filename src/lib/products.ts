@@ -9,9 +9,9 @@ export type Category = { slug: string; name: Bi; image: string };
 export const categories: Category[] = [
   { slug: "herbal-teas", name: { en: "Herbal Teas", ur: "جوشاندے / چائے" }, image: tea },
   { slug: "oils", name: { en: "Essential Oils", ur: "روغنیات" }, image: oil },
-  { slug: "immunity", name: { en: "Immunity Boosters", ur: "قوتِ مدافعت" }, image: tea },
+  { slug: "immunity", name: { en: "Immunity Boosters", ur: "بیماری سے بچاؤ" }, image: tea },
   { slug: "syrups", name: { en: "Tonics & Syrups", ur: "شربت" }, image: syrup },
-  { slug: "wellness", name: { en: "General Wellness", ur: "معجون و سفوف" }, image: syrup },
+  { slug: "wellness", name: { en: "General Wellness", ur: "معجون اور سفوف" }, image: syrup },
 ];
 
 export type Product = {
@@ -100,10 +100,10 @@ export const products: Product[] = [
     reviews: 305,
     popularity: 96,
     image: oil,
-    short: b("Cold-pressed oil for hair and memory.", "بالوں اور یادداشت کے لیے کولڈ پریسڈ تیل۔"),
+     short: b("Cold-pressed oil for hair and memory.", "بالوں اور یادداشت کے لیے خالص بادام کا تیل۔"),
     description: b(
       "Cold-pressed sweet almond oil, nothing added. Massage into hair and skin, or take a few drops with warm milk.",
-      "خالص کولڈ پریسڈ روغنِ بادام شیریں، بغیر کسی ملاوٹ کے۔ بالوں اور جلد پر مالش کریں یا چند قطرے نیم گرم دودھ کے ساتھ لیں۔",
+       "بغیر ملاوٹ کا خالص بادام کا تیل۔ بالوں اور جلد پر مالش کریں یا چند قطرے نیم گرم دودھ کے ساتھ لیں۔",
     ),
     benefits: [
       b("Nourishes hair and scalp", "بالوں کی غذائیت"),

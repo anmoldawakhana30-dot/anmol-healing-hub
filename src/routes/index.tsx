@@ -14,13 +14,15 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Hand-prepared herbal teas, oils, syrups and immunity remedies from Anmol Dawakhana. Order online in English or Urdu with cash on delivery.",
+          "Herbal teas, oils, syrups and wellness products from Anmol Dawakhana. Order directly on WhatsApp in English or Urdu.",
       },
       { property: "og:title", content: "Anmol Dawakhana — Pure Herbal & Tibbi Medicines" },
       {
         property: "og:description",
-        content: "Authentic herbal remedies prepared by our hakeems. Cash on delivery across Pakistan.",
+        content: "Browse authentic herbal remedies and order directly through WhatsApp.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Home,

@@ -13,6 +13,8 @@ export const Route = createFileRoute("/about")({
       },
       { property: "og:title", content: "About Us & Our Hakeem — Anmol Dawakhana" },
       { property: "og:description", content: "Our heritage, our promise of purity, and the hakeem behind every remedy." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: About,

@@ -10,7 +10,7 @@ export const Route = createFileRoute("/products/$slug")({
   loader: ({ params }) => ({ product: getProduct(params.slug) ?? null }),
   head: ({ loaderData }) => {
     if (!loaderData?.product) {
-      return { meta: [{ title: "Medicine not found — Anmol Dawakhana" }, { name: "robots", content: "noindex" }] };
+      return { meta: [{ title: "Medicine not found — Anmol Dawakhana" }, { name: "description", content: "Explore herbal medicines from Anmol Dawakhana." }, { property: "og:title", content: "Medicine not found — Anmol Dawakhana" }, { property: "og:description", content: "Explore herbal medicines from Anmol Dawakhana." }, { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" }, { name: "robots", content: "noindex" }] };
     }
     const p = loaderData.product;
     return {
@@ -19,6 +19,8 @@ export const Route = createFileRoute("/products/$slug")({
         { name: "description", content: p.short.en },
         { property: "og:title", content: `${p.name.en} — Anmol Dawakhana` },
         { property: "og:description", content: p.short.en },
+        { property: "og:type", content: "product" },
+        { name: "twitter:card", content: "summary_large_image" },
       ],
     };
   },

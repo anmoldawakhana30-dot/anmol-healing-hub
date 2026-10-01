@@ -3,10 +3,12 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 export const Route = createFileRoute("/cart")({
   head: () => ({
     meta: [
-      { title: "Your Cart — Anmol Dawakhana" },
-      { name: "description", content: "Review the herbal medicines in your cart before checkout." },
-      { property: "og:title", content: "Your Cart — Anmol Dawakhana" },
-      { property: "og:description", content: "Review your herbal medicine order." },
+      { title: "Order via WhatsApp — Anmol Dawakhana" },
+      { name: "description", content: "Choose a herbal product and order directly through WhatsApp." },
+      { property: "og:title", content: "Order via WhatsApp — Anmol Dawakhana" },
+      { property: "og:description", content: "Choose a herbal product and order directly through WhatsApp." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),
