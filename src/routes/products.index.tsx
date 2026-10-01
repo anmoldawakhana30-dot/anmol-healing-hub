@@ -22,6 +22,8 @@ export const Route = createFileRoute("/products/")({
       },
       { property: "og:title", content: "All Herbal Medicines — Anmol Dawakhana" },
       { property: "og:description", content: "Browse and order authentic herbal medicines online." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Catalog,

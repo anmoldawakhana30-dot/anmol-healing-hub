@@ -7,6 +7,8 @@ export const Route = createFileRoute("/checkout")({
       { name: "description", content: "Choose a herbal product and order directly through WhatsApp." },
       { property: "og:title", content: "Order via WhatsApp — Anmol Dawakhana" },
       { property: "og:description", content: "Choose a herbal product and order directly through WhatsApp." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
       { name: "robots", content: "noindex" },
     ],
   }),

@@ -33,7 +33,7 @@ export function ProductCard({ product, priority = false }: { product: Product; p
           <span>({product.reviews})</span>
         </div>
 
-        <div className="mt-auto flex items-end justify-between gap-2 pt-2">
+        <div className="mt-auto flex flex-col gap-3 pt-2">
           <div className="min-w-0">
             <span className="block text-base font-semibold text-emerald-deep">{money(product.price, lang)}</span>
             {product.oldPrice && (

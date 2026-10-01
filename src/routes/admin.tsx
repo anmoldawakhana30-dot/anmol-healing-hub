@@ -255,8 +255,8 @@ function Products({ rows, loading, error }: { rows: Row[]; loading: boolean; err
 
   async function uploadFile(file: File) {
     if (!editing) return;
-    if (!new Set(["image/jpeg", "image/png", "image/webp"]).has(file.type)) return toast.error("Use a JPG, PNG or WebP image");
-    if (file.size > 5 * 1024 * 1024) return toast.error("Image must be 5 MB or smaller");
+    if (!new Set(["image/jpeg", "image/png", "image/webp"]).has(file.type)) { toast.error("Use a JPG, PNG or WebP image"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be 5 MB or smaller"); return; }
     setUploading(true);
     try {
       const data = await new Promise<string>((resolve, reject) => {
