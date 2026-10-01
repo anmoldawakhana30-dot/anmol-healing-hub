@@ -94,7 +94,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const productsQuery = useQuery({ queryKey: ["products"], queryFn: fetchProducts, staleTime: 60_000 });
   const settingsQuery = useQuery({ queryKey: ["settings"], queryFn: fetchSettings, staleTime: 60_000 });
 
-  const products = productsQuery.data?.length ? productsQuery.data : defaultProducts;
+  const products = productsQuery.data ?? (productsQuery.isError ? [] : defaultProducts);
   const settings = settingsQuery.data ?? defaultSettings;
   applySettings(settings);
 
