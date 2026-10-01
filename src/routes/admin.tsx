@@ -17,6 +17,7 @@ import {
   type ProductInput,
 } from "@/lib/admin.functions";
 import { categories } from "@/lib/products";
+import { useLang } from "@/lib/i18n";
 import { defaultSettings, type Settings as ShopSettings } from "@/lib/shop";
 import { fetchSettings, resolveImage } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -121,7 +122,7 @@ function PairList(props: {
       <span className="text-sm font-medium">{props.label}</span>
       <div className="mt-2 space-y-2">
         {props.items.map((item, index) => (
-          <div key={`${index}-${item.en}`} className="grid grid-cols-[1fr_1fr_auto] gap-2">
+          <div key={index} className="grid grid-cols-[1fr_1fr_auto] gap-2">
             <input
               value={item.en}
               onChange={(event) => props.onChange(props.items.map((value, itemIndex) => itemIndex === index ? { ...value, en: event.target.value } : value))}
@@ -201,6 +202,8 @@ function Login({ configured, onDone }: { configured: boolean; onDone: () => void
 type Row = ProductInput & { id: string };
 
 function Dashboard({ onSignOut }: { onSignOut: () => void }) {
+  const { lang } = useLang();
+  const label = (en: string, ur: string) => lang === "ur" ? ur : en;
   const queryClient = useQueryClient();
   const list = useServerFn(listAdminProducts);
   const logout = useServerFn(adminLogout);
@@ -210,12 +213,12 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <header className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
-        <div><h1 className="text-2xl font-semibold text-emerald-deep">Shop Management</h1><p className="font-urdu text-sm text-muted-foreground">دکان کا آسان انتظام</p></div>
-        <Button variant="outline" onClick={async () => { await logout(); queryClient.clear(); onSignOut(); }}><LogOut /> Sign out</Button>
+        <div><h1 className="text-2xl font-semibold text-emerald-deep">{label("Shop Management", "دکان کا انتظام")}</h1></div>
+        <Button variant="outline" onClick={async () => { await logout(); queryClient.clear(); onSignOut(); }}><LogOut /> {label("Sign out", "باہر جائیں")}</Button>
       </header>
       <div className="mt-6 inline-flex rounded-md border border-border bg-card p-1">
-        <Button variant={tab === "products" ? "default" : "ghost"} onClick={() => setTab("products")}><ImagePlus /> Products</Button>
-        <Button variant={tab === "settings" ? "default" : "ghost"} onClick={() => setTab("settings")}><Settings /> Clinic settings</Button>
+        <Button variant={tab === "products" ? "default" : "ghost"} onClick={() => setTab("products")}><ImagePlus /> {label("Products", "ادویات")}</Button>
+        <Button variant={tab === "settings" ? "default" : "ghost"} onClick={() => setTab("settings")}><Settings /> {label("Clinic settings", "دواخانے کی معلومات")}</Button>
       </div>
       {tab === "products" ? <Products rows={(products.data as Row[] | undefined) ?? []} loading={products.isLoading} error={products.isError} /> : <ClinicSettings />}
     </div>
@@ -223,6 +226,8 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
 }
 
 function Products({ rows, loading, error }: { rows: Row[]; loading: boolean; error: boolean }) {
+  const { lang } = useLang();
+  const label = (en: string, ur: string) => lang === "ur" ? ur : en;
   const queryClient = useQueryClient();
   const save = useServerFn(saveProduct);
   const removeProduct = useServerFn(deleteProduct);
@@ -293,55 +298,55 @@ function Products({ rows, loading, error }: { rows: Row[]; loading: boolean; err
     return (
       <form onSubmit={submit} className="mt-6 space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3"><Button type="button" variant="outline" size="icon" onClick={() => setEditing(null)} aria-label="Back"><ArrowLeft /></Button><div><h2 className="text-xl font-semibold">{editing.id ? "Edit product" : "Add a product"}</h2><p className="font-urdu text-sm text-muted-foreground">{editing.id ? "دوا کی معلومات بدلیں" : "نئی دوا شامل کریں"}</p></div></div>
-          <Button type="submit" disabled={busy || uploading}>{busy && <Loader2 className="animate-spin" />}{busy ? "Saving..." : "Save product / محفوظ کریں"}</Button>
+          <div className="flex items-center gap-3"><Button type="button" variant="outline" size="icon" onClick={() => setEditing(null)} aria-label={label("Back", "واپس")}><ArrowLeft /></Button><h2 className="text-xl font-semibold">{editing.id ? label("Edit product", "دوا کی معلومات بدلیں") : label("Add a product", "نئی دوا شامل کریں")}</h2></div>
+          <Button type="submit" disabled={busy || uploading}>{busy && <Loader2 className="animate-spin" />}{busy ? label("Saving...", "محفوظ ہو رہا ہے...") : label("Save product", "دوا محفوظ کریں")}</Button>
         </div>
 
         <div className="surface-panel space-y-6 p-5 sm:p-6">
-          <Section title="Basic details / بنیادی معلومات">
+          <Section title={label("Basic details", "بنیادی معلومات")}>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Product name in English" value={data.name_en} onChange={(value) => set({ name_en: value })} required />
+              <Field label={label("Product name in English", "انگریزی نام")} value={data.name_en} onChange={(value) => set({ name_en: value })} required />
               <Field label="دوا کا نام اردو میں" urdu value={data.name_ur} onChange={(value) => set({ name_ur: value })} required />
-              <label className="block text-sm font-medium">Category / قسم<select value={data.category} onChange={(event) => set({ category: event.target.value })} className={field}>{categories.map((category) => <option key={category.slug} value={category.slug}>{category.name.en} — {category.name.ur}</option>)}</select></label>
-              <Field label="Web address" hint="Created automatically if left empty." value={data.slug} onChange={(value) => set({ slug: value })} placeholder="special-joshanda" />
+              <label className="block text-sm font-medium">{label("Category", "قسم")}<select value={data.category} onChange={(event) => set({ category: event.target.value })} className={field}>{categories.map((category) => <option key={category.slug} value={category.slug}>{category.name[lang]}</option>)}</select></label>
+              <Field label={label("Web address", "ویب پتہ")} hint={label("Created automatically if left empty.", "خالی چھوڑنے پر خود بن جائے گا۔")} value={data.slug} onChange={(value) => set({ slug: value })} placeholder="special-joshanda" />
             </div>
           </Section>
 
-          <Section title="Price and pack / قیمت اور پیکنگ">
+          <Section title={label("Price and pack", "قیمت اور پیکنگ")}>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <Field label="Price (Rs.)" type="number" value={data.price} onChange={(value) => set({ price: Number(value) })} required />
-              <Field label="Old price (optional)" type="number" value={data.old_price ?? ""} onChange={(value) => set({ old_price: value === "" ? null : Number(value) })} />
-              <Field label="Pack size in English" value={data.pack_en} onChange={(value) => set({ pack_en: value })} placeholder="200 g" />
+              <Field label={label("Price (Rs.)", "قیمت (روپے)")} type="number" value={data.price} onChange={(value) => set({ price: Number(value) })} required />
+              <Field label={label("Old price (optional)", "پرانے دام (اختیاری)")} type="number" value={data.old_price ?? ""} onChange={(value) => set({ old_price: value === "" ? null : Number(value) })} />
+              <Field label={label("Pack size in English", "انگریزی میں پیک کا وزن")} value={data.pack_en} onChange={(value) => set({ pack_en: value })} placeholder="200 g" />
               <Field label="پیک کا وزن اردو میں" urdu value={data.pack_ur} onChange={(value) => set({ pack_ur: value })} placeholder="200 گرام" />
             </div>
           </Section>
 
-          <Section title="Product photo / دوا کی تصویر" description="Upload a clear JPG, PNG or WebP photo up to 5 MB, or paste an image link.">
+          <Section title={label("Product photo", "دوا کی تصویر")} description={label("Upload a JPG, PNG or WebP photo up to 5 MB, or paste an image link.", "5 ایم بی تک تصویر اپ لوڈ کریں یا تصویر کا لنک لکھیں۔")}>
             <div className="grid gap-4 sm:grid-cols-[144px_1fr] sm:items-start">
               <img src={resolveImage(data.image)} alt="Product preview" className="aspect-square w-36 rounded-md border border-border object-cover" />
               <div>
                 <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => { const file = event.target.files?.[0]; if (file) uploadFile(file); }} />
-                <Button type="button" variant="outline" disabled={uploading} onClick={() => fileInput.current?.click()}>{uploading ? <Loader2 className="animate-spin" /> : <ImagePlus />}{uploading ? "Uploading..." : "Upload photo / تصویر اپ لوڈ کریں"}</Button>
-                <div className="mt-4"><Field label="Or paste an image URL" value={data.image} onChange={(value) => set({ image: value })} placeholder="https://..." /></div>
+                 <Button type="button" variant="outline" disabled={uploading} onClick={() => fileInput.current?.click()}>{uploading ? <Loader2 className="animate-spin" /> : <ImagePlus />}{uploading ? label("Uploading...", "تصویر اپ لوڈ ہو رہی ہے...") : label("Upload photo", "تصویر اپ لوڈ کریں")}</Button>
+                 <div className="mt-4"><Field label={label("Or paste an image URL", "یا تصویر کا لنک لکھیں")} value={data.image} onChange={(value) => set({ image: value })} placeholder="https://..." /></div>
               </div>
             </div>
           </Section>
 
-          <Section title="Description / تفصیل">
+          <Section title={label("Description", "تفصیل")}>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Short line in English" value={data.short_en} onChange={(value) => set({ short_en: value })} />
+              <Field label={label("Short line in English", "انگریزی میں مختصر جملہ")} value={data.short_en} onChange={(value) => set({ short_en: value })} />
               <Field label="مختصر جملہ اردو میں" urdu value={data.short_ur} onChange={(value) => set({ short_ur: value })} />
-              <Field label="Full description in English" textarea value={data.description_en} onChange={(value) => set({ description_en: value })} />
+              <Field label={label("Full description in English", "انگریزی میں مکمل تفصیل")} textarea value={data.description_en} onChange={(value) => set({ description_en: value })} />
               <Field label="مکمل تفصیل اردو میں" urdu textarea value={data.description_ur} onChange={(value) => set({ description_ur: value })} />
             </div>
           </Section>
 
-          <Section title="Benefits and ingredients / فوائد اور اجزاء">
-            <div className="grid gap-6 lg:grid-cols-2"><PairList label="Benefits / فوائد" items={data.benefits} onChange={(benefits) => set({ benefits })} /><PairList label="Ingredients / اجزاء" items={data.ingredients} onChange={(ingredients) => set({ ingredients })} /></div>
+          <Section title={label("Benefits and ingredients", "فوائد اور اجزاء")}>
+            <div className="grid gap-6 lg:grid-cols-2"><PairList label={label("Benefits", "فوائد")} items={data.benefits} onChange={(benefits) => set({ benefits })} /><PairList label={label("Ingredients", "اجزاء")} items={data.ingredients} onChange={(ingredients) => set({ ingredients })} /></div>
           </Section>
 
-          <Section title="How to use / طریقہ استعمال">
-            <div className="grid gap-4 sm:grid-cols-2"><Field label="Instructions in English" textarea value={data.dosage_en} onChange={(value) => set({ dosage_en: value })} /><Field label="استعمال کا طریقہ اردو میں" urdu textarea value={data.dosage_ur} onChange={(value) => set({ dosage_ur: value })} /></div>
+          <Section title={label("How to use", "طریقہ استعمال")}>
+            <div className="grid gap-4 sm:grid-cols-2"><Field label={label("Instructions in English", "انگریزی میں استعمال کا طریقہ")} textarea value={data.dosage_en} onChange={(value) => set({ dosage_en: value })} /><Field label="استعمال کا طریقہ اردو میں" urdu textarea value={data.dosage_ur} onChange={(value) => set({ dosage_ur: value })} /></div>
           </Section>
         </div>
       </form>
@@ -350,7 +355,7 @@ function Products({ rows, loading, error }: { rows: Row[]; loading: boolean; err
 
   return (
     <section className="mt-6">
-      <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-xl font-semibold">Products</h2><p className="font-urdu text-sm text-muted-foreground">ادویات شامل کریں یا معلومات بدلیں</p></div><Button onClick={() => setEditing({ id: null, data: { ...emptyProduct } })}><Plus /> Add product / نئی دوا</Button></div>
+       <div className="flex flex-wrap items-end justify-between gap-3"><h2 className="text-xl font-semibold">{label("Products", "ادویات")}</h2><Button onClick={() => setEditing({ id: null, data: { ...emptyProduct } })}><Plus /> {label("Add product", "نئی دوا")}</Button></div>
       {loading ? <Loading /> : error ? <p className="mt-8 text-center text-destructive">Products could not be loaded. Please refresh.</p> : rows.length === 0 ? <p className="mt-8 border-y border-border py-10 text-center text-muted-foreground">No products yet. Add your first product.</p> : (
         <ul className="mt-5 divide-y divide-border border-y border-border">
           {rows.map((row) => (
@@ -368,6 +373,8 @@ function Products({ rows, loading, error }: { rows: Row[]; loading: boolean; err
 }
 
 function ClinicSettings() {
+  const { lang } = useLang();
+  const label = (en: string, ur: string) => lang === "ur" ? ur : en;
   const queryClient = useQueryClient();
   const save = useServerFn(saveSettings);
   const current = useQuery({ queryKey: ["settings"], queryFn: fetchSettings });
@@ -394,7 +401,7 @@ function ClinicSettings() {
   if (current.isLoading) return <Loading />;
   return (
     <form onSubmit={submit} className="mt-6 space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 className="text-xl font-semibold">Clinic settings</h2><p className="font-urdu text-sm text-muted-foreground">دواخانے کی معلومات</p></div><Button type="submit" disabled={busy}>{busy && <Loader2 className="animate-spin" />}{busy ? "Saving..." : "Save changes / محفوظ کریں"}</Button></div>
+       <div className="flex flex-wrap items-end justify-between gap-3"><h2 className="text-xl font-semibold">{label("Clinic settings", "دواخانے کی معلومات")}</h2><Button type="submit" disabled={busy}>{busy && <Loader2 className="animate-spin" />}{busy ? label("Saving...", "محفوظ ہو رہا ہے...") : label("Save changes", "تبدیلیاں محفوظ کریں")}</Button></div>
       <div className="surface-panel space-y-6 p-5 sm:p-6">
         <Section title="Contact details / رابطے کی معلومات"><div className="grid gap-4 sm:grid-cols-2"><Field label="WhatsApp number" hint="Country code and digits only." value={data.whatsapp} onChange={(value) => set({ whatsapp: value })} placeholder="923072560758" /><Field label="Phone number shown on website" value={data.phone} onChange={(value) => set({ phone: value })} /><Field label="Email address" type="email" value={data.email} onChange={(value) => set({ email: value })} /><Field label="Google Maps address or link" value={data.mapQuery} onChange={(value) => set({ mapQuery: value })} /></div></Section>
         <Section title="Clinic address / دواخانے کا پتہ"><div className="grid gap-4 sm:grid-cols-2"><Field label="Address in English" textarea value={data.addressEn} onChange={(value) => set({ addressEn: value })} /><Field label="پتہ اردو میں" urdu textarea value={data.addressUr} onChange={(value) => set({ addressUr: value })} /></div></Section>
