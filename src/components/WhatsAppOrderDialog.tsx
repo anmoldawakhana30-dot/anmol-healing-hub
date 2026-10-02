@@ -127,7 +127,7 @@ export function WhatsAppOrderDialog({ product, compact = false }: { product: Pro
             <input
               value={form.phone}
               onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value.slice(0, 18) }))}
-              className={field}
+              className={`${field} text-left`}
               inputMode="tel"
               autoComplete="tel"
               placeholder="0300 1234567"

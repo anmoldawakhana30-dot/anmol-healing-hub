@@ -192,11 +192,14 @@ const imageInputSchema = {
 };
 
 export const uploadProductImage = createServerFn({ method: "POST" })
-  .inputValidator((input: { name: string; type: string; data: string }) => ({
-    name: imageInputSchema.name(input.name),
-    type: imageInputSchema.type(input.type),
-    data: imageInputSchema.data(input.data),
-  }))
+  .inputValidator((input: { name: string; type: string; data: string }) => {
+    if (typeof input.data !== "string" || input.data.length > 7_000_000) throw new Error("Image must be 5 MB or smaller");
+    return {
+      name: imageInputSchema.name(input.name),
+      type: imageInputSchema.type(input.type),
+      data: imageInputSchema.data(input.data),
+    };
+  })
   .handler(async ({ data }) => {
     await requireAdmin();
     if (!data.name) throw new Error("Choose an image file");
@@ -206,7 +209,13 @@ export const uploadProductImage = createServerFn({ method: "POST" })
     const match = /^data:image\/(?:jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/.exec(data.data);
     if (!match?.[1]) throw new Error("The image could not be read");
     const bytes = Buffer.from(match[1], "base64");
-    if (bytes.byteLength > 5 * 1024 * 1024) throw new Error("Image must be 5 MB or smaller");
+    if (!bytes.byteLength || bytes.byteLength > 5 * 1024 * 1024) throw new Error("Image must be 5 MB or smaller");
+    const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+    const isPng = bytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+    const isWebp = bytes.toString("ascii", 0, 4) === "RIFF" && bytes.toString("ascii", 8, 12) === "WEBP";
+    if (!(data.type === "image/jpeg" && isJpeg || data.type === "image/png" && isPng || data.type === "image/webp" && isWebp)) {
+      throw new Error("The file is not a valid image of the selected type");
+    }
 
     const extension = data.type === "image/jpeg" ? "jpg" : data.type.split("/")[1];
     const stem = data.name.replace(/\.[^.]+$/, "").slice(0, 60) || "product";
