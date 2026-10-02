@@ -46,8 +46,6 @@ export function waLink(message: string) {
   return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 }
 
-export type OrderLine = { name: string; price: string; qty: number };
-
 export type CustomerOrder = {
   name: string;
   address: string;
@@ -58,23 +56,6 @@ export type CustomerOrder = {
   unitPrice: string;
   total: string;
 };
-
-/** The order message template used by every WhatsApp order button. */
-export function orderMessage(lines: OrderLine[]) {
-  const body = lines
-    .map((l) => [`- Product: ${l.name}`, `- Price: ${l.price}`, `- Quantity: ${l.qty}`].join("\n"))
-    .join("\n\n");
-
-  return [
-    "Salam! Main Anmol Dawakhana se yeh product order karna chahta/chahti hoon:",
-    "",
-    body,
-    "",
-    "Mera Naam: ",
-    "Mera Address: ",
-    "Mera Phone Number: ",
-  ].join("\n");
-}
 
 export function customerOrderMessage(order: CustomerOrder) {
   return [

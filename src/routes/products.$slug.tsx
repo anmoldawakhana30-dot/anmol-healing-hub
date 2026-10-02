@@ -3,7 +3,7 @@ import { Check, Star } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
 import { WhatsAppOrderDialog } from "@/components/WhatsAppOrderDialog";
 import { money, useLang } from "@/lib/i18n";
-import { products as defaultProducts, getProduct } from "@/lib/products";
+import { getProduct } from "@/lib/products";
 import { useStore } from "@/lib/store";
 
 export const Route = createFileRoute("/products/$slug")({
@@ -36,7 +36,7 @@ const sampleReviews = [
 function ProductDetail() {
   const { slug } = Route.useParams();
   const { products, getProduct: fromStore } = useStore();
-  const product = fromStore(slug) ?? defaultProducts.find((p) => p.slug === slug);
+  const product = fromStore(slug);
   const { lang, t } = useLang();
 
   if (!product) {
