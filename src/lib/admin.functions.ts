@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { useSession } from "@tanstack/react-start/server";
 import { createHash, timingSafeEqual } from "node:crypto";
+import { z } from "zod";
 
 type AdminSession = { admin?: boolean };
 
@@ -85,6 +86,46 @@ function cleanPairs(value: unknown) {
     .filter((x) => x.en || x.ur);
 }
 
+const productSchema = z.object({
+  slug: z.string().max(80),
+  name_en: z.string().max(120),
+  name_ur: z.string().max(120),
+  category: z.enum(["herbal-teas", "oils", "immunity", "syrups", "wellness"]),
+  price: z.number().finite().nonnegative(),
+  old_price: z.number().finite().nonnegative().nullable(),
+  pack_en: z.string().max(60),
+  pack_ur: z.string().max(60),
+  image: z.string().max(1000),
+  short_en: z.string().max(200),
+  short_ur: z.string().max(200),
+  description_en: z.string().max(4000),
+  description_ur: z.string().max(4000),
+  benefits: z.array(z.object({ en: z.string().max(200), ur: z.string().max(200) })).max(20),
+  ingredients: z.array(z.object({ en: z.string().max(200), ur: z.string().max(200) })).max(20),
+  dosage_en: z.string().max(1000),
+  dosage_ur: z.string().max(1000),
+});
+
+const productInputSchema = z.object({
+  id: z.string().uuid().nullable().optional(),
+  product: productSchema,
+});
+
+const settingsInputSchema = z.object({
+  whatsapp: z.string().regex(/^\+?\d{10,15}$/),
+  phone: z.string().max(60),
+  email: z.string().email().max(255),
+  addressEn: z.string().max(500),
+  addressUr: z.string().max(500),
+  mapQuery: z.string().max(500),
+  heroTitleEn: z.string().max(500),
+  heroTitleUr: z.string().max(500),
+  heroSubtitleEn: z.string().max(500),
+  heroSubtitleUr: z.string().max(500),
+  announcementEn: z.string().max(500),
+  announcementUr: z.string().max(500),
+});
+
 function validateProduct(data: ProductInput): ProductInput {
   const slug =
     clean(data.slug, 80)
@@ -121,7 +162,7 @@ function validateProduct(data: ProductInput): ProductInput {
 }
 
 export const saveProduct = createServerFn({ method: "POST" })
-  .inputValidator((data: { id?: string | null; product: ProductInput }) => data)
+  .inputValidator((data: { id?: string | null; product: ProductInput }) => productInputSchema.parse(data))
   .handler(async ({ data }) => {
     await requireAdmin();
     const product = validateProduct(data.product);
@@ -138,7 +179,7 @@ export const saveProduct = createServerFn({ method: "POST" })
   });
 
 export const deleteProduct = createServerFn({ method: "POST" })
-  .inputValidator((data: { id: string }) => ({ id: String(data.id) }))
+  .inputValidator((data: { id: string }) => z.object({ id: z.string().uuid() }).parse(data))
   .handler(async ({ data }) => {
     await requireAdmin();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -148,7 +189,7 @@ export const deleteProduct = createServerFn({ method: "POST" })
   });
 
 export const saveSettings = createServerFn({ method: "POST" })
-  .inputValidator((data: Record<string, string>) => data)
+  .inputValidator((data: Record<string, string>) => settingsInputSchema.parse(data))
   .handler(async ({ data }) => {
     await requireAdmin();
     const keys = [
