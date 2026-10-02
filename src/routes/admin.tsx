@@ -117,6 +117,7 @@ function PairList(props: {
   items: { en: string; ur: string }[];
   onChange: (items: { en: string; ur: string }[]) => void;
 }) {
+  const { lang } = useLang();
   return (
     <div>
       <span className="text-sm font-medium">{props.label}</span>
@@ -126,7 +127,7 @@ function PairList(props: {
             <input
               value={item.en}
               onChange={(event) => props.onChange(props.items.map((value, itemIndex) => itemIndex === index ? { ...value, en: event.target.value } : value))}
-              placeholder="English"
+              placeholder={lang === "ur" ? "انگریزی" : "English"}
               className={field}
             />
             <input
@@ -136,14 +137,14 @@ function PairList(props: {
               placeholder="اردو"
               className={cn(field, "font-urdu")}
             />
-            <Button type="button" variant="ghost" size="icon" onClick={() => props.onChange(props.items.filter((_, itemIndex) => itemIndex !== index))} aria-label="Remove line">
+            <Button type="button" variant="ghost" size="icon" onClick={() => props.onChange(props.items.filter((_, itemIndex) => itemIndex !== index))} aria-label={lang === "ur" ? "لائن ہٹائیں" : "Remove line"}>
               <Trash2 />
             </Button>
           </div>
         ))}
       </div>
       <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => props.onChange([...props.items, { en: "", ur: "" }])}>
-        <Plus /> Add another / مزید شامل کریں
+        <Plus /> {lang === "ur" ? "مزید شامل کریں" : "Add another"}
       </Button>
     </div>
   );
@@ -161,6 +162,7 @@ function Loading() {
 }
 
 function Login({ configured, onDone }: { configured: boolean; onDone: () => void }) {
+  const { lang } = useLang();
   const login = useServerFn(adminLogin);
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -189,11 +191,11 @@ function Login({ configured, onDone }: { configured: boolean; onDone: () => void
     <div className="mx-auto max-w-sm px-4 py-20">
       <form onSubmit={submit} className="surface-panel space-y-4 p-6 text-center">
         <span className="mx-auto grid size-11 place-items-center rounded-md bg-accent text-primary"><Lock className="size-5" /></span>
-        <div><h1 className="text-xl font-semibold text-emerald-deep">Shop Management</h1><p className="font-urdu text-sm text-muted-foreground">دکان کا انتظام</p></div>
+         <h1 className="text-xl font-semibold text-emerald-deep">{lang === "ur" ? "دکان کا انتظام" : "Shop Management"}</h1>
         <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Password / پاس ورڈ" autoComplete="current-password" className={field} required />
         {!configured && <p className="text-xs text-destructive">The admin password is not configured.</p>}
         {error && <p className="text-sm text-destructive">{error}</p>}
-        <Button type="submit" disabled={busy} className="h-11 w-full">{busy && <Loader2 className="animate-spin" />}{busy ? "Signing in..." : "Sign in / داخل ہوں"}</Button>
+         <Button type="submit" disabled={busy} className="h-11 w-full">{busy && <Loader2 className="animate-spin" />}{busy ? (lang === "ur" ? "انتظار کریں..." : "Signing in...") : (lang === "ur" ? "داخل ہوں" : "Sign in")}</Button>
       </form>
     </div>
   );
@@ -356,14 +358,14 @@ function Products({ rows, loading, error }: { rows: Row[]; loading: boolean; err
   return (
     <section className="mt-6">
        <div className="flex flex-wrap items-end justify-between gap-3"><h2 className="text-xl font-semibold">{label("Products", "ادویات")}</h2><Button onClick={() => setEditing({ id: null, data: { ...emptyProduct } })}><Plus /> {label("Add product", "نئی دوا")}</Button></div>
-      {loading ? <Loading /> : error ? <p className="mt-8 text-center text-destructive">Products could not be loaded. Please refresh.</p> : rows.length === 0 ? <p className="mt-8 border-y border-border py-10 text-center text-muted-foreground">No products yet. Add your first product.</p> : (
+       {loading ? <Loading /> : error ? <p className="mt-8 text-center text-destructive">{label("Products could not be loaded. Please refresh.", "ادویات لوڈ نہیں ہوئیں۔ صفحہ دوبارہ کھولیں۔")}</p> : rows.length === 0 ? <p className="mt-8 border-y border-border py-10 text-center text-muted-foreground">{label("No products yet. Add your first product.", "ابھی کوئی دوا نہیں۔ پہلی دوا شامل کریں۔")}</p> : (
         <ul className="mt-5 divide-y divide-border border-y border-border">
           {rows.map((row) => (
             <li key={row.id} className="flex items-center gap-3 py-3">
               <img src={resolveImage(row.image)} alt="" className="size-16 shrink-0 rounded-md object-cover" loading="lazy" />
               <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium">{row.name_en}</p><p className="font-urdu truncate text-sm text-muted-foreground">{row.name_ur}</p><p className="text-xs text-muted-foreground">Rs. {row.price} · {row.pack_en}</p></div>
-              <Button variant="outline" size="icon" onClick={() => setEditing({ id: row.id, data: { ...row } })} aria-label={`Edit ${row.name_en}`}><Pencil /></Button>
-              <Button variant="ghost" size="icon" className="text-destructive" onClick={() => remove(row)} aria-label={`Delete ${row.name_en}`}><Trash2 /></Button>
+               <Button variant="outline" size="icon" onClick={() => setEditing({ id: row.id, data: { ...row } })} aria-label={`${label("Edit", "بدلیں")} ${row.name_en}`}><Pencil /></Button>
+               <Button variant="ghost" size="icon" className="text-destructive" onClick={() => remove(row)} aria-label={`${label("Delete", "ہٹائیں")} ${row.name_en}`}><Trash2 /></Button>
             </li>
           ))}
         </ul>
@@ -403,10 +405,10 @@ function ClinicSettings() {
     <form onSubmit={submit} className="mt-6 space-y-6">
        <div className="flex flex-wrap items-end justify-between gap-3"><h2 className="text-xl font-semibold">{label("Clinic settings", "دواخانے کی معلومات")}</h2><Button type="submit" disabled={busy}>{busy && <Loader2 className="animate-spin" />}{busy ? label("Saving...", "محفوظ ہو رہا ہے...") : label("Save changes", "تبدیلیاں محفوظ کریں")}</Button></div>
       <div className="surface-panel space-y-6 p-5 sm:p-6">
-        <Section title="Contact details / رابطے کی معلومات"><div className="grid gap-4 sm:grid-cols-2"><Field label="WhatsApp number" hint="Country code and digits only." value={data.whatsapp} onChange={(value) => set({ whatsapp: value })} placeholder="923072560758" /><Field label="Phone number shown on website" value={data.phone} onChange={(value) => set({ phone: value })} /><Field label="Email address" type="email" value={data.email} onChange={(value) => set({ email: value })} /><Field label="Google Maps address or link" value={data.mapQuery} onChange={(value) => set({ mapQuery: value })} /></div></Section>
-        <Section title="Clinic address / دواخانے کا پتہ"><div className="grid gap-4 sm:grid-cols-2"><Field label="Address in English" textarea value={data.addressEn} onChange={(value) => set({ addressEn: value })} /><Field label="پتہ اردو میں" urdu textarea value={data.addressUr} onChange={(value) => set({ addressUr: value })} /></div></Section>
-        <Section title="Home banner / مرکزی پیغام"><div className="grid gap-4 sm:grid-cols-2"><Field label="Heading in English" value={data.heroTitleEn} onChange={(value) => set({ heroTitleEn: value })} /><Field label="عنوان اردو میں" urdu value={data.heroTitleUr} onChange={(value) => set({ heroTitleUr: value })} /><Field label="Short text in English" textarea value={data.heroSubtitleEn} onChange={(value) => set({ heroSubtitleEn: value })} /><Field label="مختصر عبارت اردو میں" urdu textarea value={data.heroSubtitleUr} onChange={(value) => set({ heroSubtitleUr: value })} /></div></Section>
-        <Section title="Emergency announcement / ضروری اعلان" description="Leave both boxes empty to hide the announcement."><div className="grid gap-4 sm:grid-cols-2"><Field label="Announcement in English" textarea value={data.announcementEn} onChange={(value) => set({ announcementEn: value })} /><Field label="ضروری اعلان اردو میں" urdu textarea value={data.announcementUr} onChange={(value) => set({ announcementUr: value })} /></div></Section>
+         <Section title={label("Contact details", "رابطے کی معلومات")}><div className="grid gap-4 sm:grid-cols-2"><Field label={label("WhatsApp number", "واٹس ایپ نمبر")} hint={label("Country code and digits only.", "ملکی کوڈ اور صرف نمبر لکھیں۔")} value={data.whatsapp} onChange={(value) => set({ whatsapp: value })} placeholder="923072560758" /><Field label={label("Phone number shown on website", "ویب سائٹ پر دکھایا جانے والا فون نمبر")} value={data.phone} onChange={(value) => set({ phone: value })} /><Field label={label("Email address", "ای میل پتہ")} type="email" value={data.email} onChange={(value) => set({ email: value })} /><Field label={label("Google Maps address or link", "گوگل نقشے کا پتہ یا لنک")} value={data.mapQuery} onChange={(value) => set({ mapQuery: value })} /></div></Section>
+         <Section title={label("Clinic address", "دواخانے کا پتہ")}><div className="grid gap-4 sm:grid-cols-2"><Field label={label("Address in English", "انگریزی میں پتہ")} textarea value={data.addressEn} onChange={(value) => set({ addressEn: value })} /><Field label="پتہ اردو میں" urdu textarea value={data.addressUr} onChange={(value) => set({ addressUr: value })} /></div></Section>
+         <Section title={label("Home banner", "مرکزی پیغام")}><div className="grid gap-4 sm:grid-cols-2"><Field label={label("Heading in English", "انگریزی میں عنوان")} value={data.heroTitleEn} onChange={(value) => set({ heroTitleEn: value })} /><Field label="عنوان اردو میں" urdu value={data.heroTitleUr} onChange={(value) => set({ heroTitleUr: value })} /><Field label={label("Short text in English", "انگریزی میں مختصر عبارت")} textarea value={data.heroSubtitleEn} onChange={(value) => set({ heroSubtitleEn: value })} /><Field label="مختصر عبارت اردو میں" urdu textarea value={data.heroSubtitleUr} onChange={(value) => set({ heroSubtitleUr: value })} /></div></Section>
+         <Section title={label("Emergency announcement", "ضروری اعلان")} description={label("Leave both boxes empty to hide the announcement.", "اعلان چھپانے کے لیے دونوں خانے خالی چھوڑ دیں۔")}><div className="grid gap-4 sm:grid-cols-2"><Field label={label("Announcement in English", "انگریزی میں اعلان")} textarea value={data.announcementEn} onChange={(value) => set({ announcementEn: value })} /><Field label="ضروری اعلان اردو میں" urdu textarea value={data.announcementUr} onChange={(value) => set({ announcementUr: value })} /></div></Section>
       </div>
     </form>
   );
