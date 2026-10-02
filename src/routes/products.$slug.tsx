@@ -36,7 +36,7 @@ const sampleReviews = [
 function ProductDetail() {
   const { slug } = Route.useParams();
   const { products, getProduct: fromStore } = useStore();
-  const product = fromStore(slug) ?? defaultProducts.find((p) => p.slug === slug);
+  const product = fromStore(slug);
   const { lang, t } = useLang();
 
   if (!product) {
