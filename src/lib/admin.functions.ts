@@ -6,14 +6,19 @@ import { z } from "zod";
 type AdminSession = { admin?: boolean };
 
 function sessionConfig() {
+  // The editor embeds the shop on a different site. Lax cookies are not sent
+  // on its server-function requests, so the password succeeds but /admin
+  // immediately looks signed out again. HTTPS + partitioning keeps this safe.
+  const embedded = process.env["NODE_ENV"] === "production";
   return {
     password: process.env["SESSION_SECRET"]!,
     name: "ad-admin",
     maxAge: 60 * 60 * 24 * 7,
     cookie: {
       httpOnly: true,
-      secure: process.env["NODE_ENV"] === "production",
-      sameSite: "lax" as const,
+      secure: embedded,
+      sameSite: embedded ? "none" as const : "lax" as const,
+      partitioned: embedded,
       path: "/",
     },
   };
