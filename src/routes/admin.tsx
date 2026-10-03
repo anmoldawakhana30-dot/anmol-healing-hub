@@ -153,6 +153,7 @@ function PairList(props: {
 function AdminPage() {
   const status = useQuery({ queryKey: ["admin-status"], queryFn: () => adminStatus() });
   if (status.isLoading) return <Loading />;
+  if (status.isError) return <div className="mx-auto max-w-sm px-4 py-20 text-center"><p className="text-destructive">Could not load the admin panel. / انتظامی صفحہ نہیں کھل سکا۔</p><Button className="mt-4" onClick={() => status.refetch()}>Try again / دوبارہ کوشش کریں</Button></div>;
   if (!status.data?.admin) return <Login configured={status.data?.configured ?? false} onDone={() => status.refetch()} />;
   return <Dashboard onSignOut={() => status.refetch()} />;
 }
