@@ -6,4 +6,4 @@
 - [x] Redesign product and clinic admin screens
 - [x] Simplify Urdu copy and verify RTL
 - [x] Verify desktop/mobile ordering and admin flows
-- [ ] Fix admin panel not appearing after password entry; verify sign-in in preview
+- [x] Fix admin panel not appearing after password entry; verify sign-in and reload locally, with embedded-preview cookie settings

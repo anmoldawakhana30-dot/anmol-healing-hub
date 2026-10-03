@@ -11,3 +11,4 @@
 
 - Keep product orders in the shared WhatsApp dialog and preserve catalog/cart/checkout redirects to one order path, because shoppers need one clear action.
 - Save shop catalog and settings through protected admin server functions and use private image storage with signed read URLs, because public buckets are blocked in this workspace.
+- Use a secure partitioned SameSite=None admin session cookie in production and Lax locally, because embedded previews otherwise drop the admin login on subsequent requests.
